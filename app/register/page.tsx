@@ -9,6 +9,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
+interface registerResponse{
+  success:boolean
+  error?:string
+}
+
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +28,7 @@ export default function Register() {
     setError(null);
 
     try {
-      const res = await axios.post(
+      const res = await axios.post<registerResponse>(
         "/api/v1/register",
         { email, password },
         {
