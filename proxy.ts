@@ -2,7 +2,7 @@ import { NextRequest,NextResponse } from "next/server";
 import { verifyToken } from "./lib/auth";
 
 
-export function middleware(req:NextRequest){
+export function proxy(req:NextRequest){
     const token =req.cookies.get("token")?.value;
 
     if(!token){
