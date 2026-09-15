@@ -4,8 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function register (){
+    const[email,setEmail]=useState("")
+    const[loading,setLoading]=useState("")
+    
     return (
         <div className="  min-h-screen bg-background text-foreground flex items-center justify-center px-4">
            <Card className="w-full max-w-sm p-6">
