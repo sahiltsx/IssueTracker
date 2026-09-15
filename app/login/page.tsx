@@ -5,11 +5,27 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function register (){
     const[email,setEmail]=useState("")
-    const[loading,setLoading]=useState("")
-    
+    const[code,setCode]=useState("")
+    const[step,setStep]=useState<"email"|"code">("email")
+    const[error,setError]=useState(null)
+    const[loading,setLoading]=useState(false)
+ 
+    async function handleSendCode(e:React.FormEvent){
+         e.preventDefault();
+         setError(null)
+         setLoading(true)
+
+        //  try {
+        //     await 
+        //  } catch (error) {
+            
+        //  }
+    }
+    const router=useRouter()
     return (
         <div className="  min-h-screen bg-background text-foreground flex items-center justify-center px-4">
            <Card className="w-full max-w-sm p-6">
