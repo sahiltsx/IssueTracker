@@ -9,11 +9,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
-interface registerResponse{
-  success:boolean
-  error?:string
-}
-
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +23,7 @@ export default function Register() {
     setError(null);
 
     try {
-      const res = await axios.post<registerResponse>(
+      await axios.post(
         "/api/v1/register",
         { email, password },
         {
@@ -38,17 +33,9 @@ export default function Register() {
         }
       );
 
-      const data = res.data;
-
-      if (!data.success) {
-        setError(data.error || "Register failed");
-        return;
-      }
-
       router.push("/dashboard");
-    } catch (err) {
-      console.log(err);
-      setError("Something went wrong. Please try again.");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -103,7 +90,6 @@ export default function Register() {
             </Button>
           </form>
 
-          {/* separator */}
           <div className="flex items-center gap-3">
             <Separator className="flex-1" />
             <span className="text-xs text-muted-foreground">OR</span>
