@@ -1,3 +1,4 @@
+import prisma from "@/lib/db";
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -43,6 +44,27 @@ export async function GET(req:NextRequest){
         }
      })
         const githubProfile=await profileRes.data
+
+        let email=githubProfile.email;
+        if(!email){
+            const emailRes=await axios.get("https://api.github.com/user/emails",{
+                headers:{
+                    Authorization:`Bearer ${access_token}`
+                }
+            })
+            let primaryEmail=emailRes.data.find((e:any)=>e.primary);
+
+            if(!primaryEmail){
+                return NextResponse.json({
+                    message:"Could not get email from github"
+                },{
+                    status:400
+                })
+            }
+            email=primaryEmail.email;
+        }
+
+        const githubUser=await prisma.user.findUnique
     } catch (error) {
         console.log(error)
 
