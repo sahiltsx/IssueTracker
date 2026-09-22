@@ -65,13 +65,13 @@ export async function GET(req:NextRequest){
             email=primaryEmail.email;
         }
 
-        const user=await prisma.user.findUnique({
+        let user=await prisma.user.findUnique({
             where:{
                 githubId:githubProfile.id.toString()
             }
         })
         if(user){
-           await prisma.user.update({
+          user= await prisma.user.update({
                 where:{
                     githubId:githubProfile.id.toString()
                 },
@@ -81,7 +81,7 @@ export async function GET(req:NextRequest){
                 }
             });
         }else{
-           await prisma.user.create({
+          user= await prisma.user.create({
             data:{
                 email,
                 githubId:githubProfile.id.toString(),

@@ -17,7 +17,7 @@ export async function POST(req:NextRequest) {
                  status:400
              });
          }
-             const existingUser=await prisma.user.findUnique({
+             const existingUser=await prisma.user.findFirst({
                  where:{
                      email:email
                  }
@@ -41,7 +41,7 @@ export async function POST(req:NextRequest) {
              });
 
              const token=jwt.sign(
-                {UserId:User.id,email:User.email},
+                {userId:User.id,email:User.email},
                 process.env.JWT_SECRET as string,
                 {expiresIn:"7d"}
              )
