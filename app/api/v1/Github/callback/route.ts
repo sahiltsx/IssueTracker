@@ -64,7 +64,11 @@ export async function GET(req:NextRequest){
             email=primaryEmail.email;
         }
 
-        const githubUser=await prisma.user.findUnique
+        const githubUser=await prisma.user.findUnique({
+            where:{
+                githubId:githubProfile.id.toString()
+            }
+        })
     } catch (error) {
         console.log(error)
 
