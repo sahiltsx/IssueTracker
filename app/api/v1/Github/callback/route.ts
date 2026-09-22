@@ -1,6 +1,7 @@
 import prisma from "@/lib/db";
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
+import  jwt from "jsonwebtoken";
 
 
 
@@ -64,11 +65,45 @@ export async function GET(req:NextRequest){
             email=primaryEmail.email;
         }
 
-        const githubUser=await prisma.user.findUnique({
+        const user=await prisma.user.findUnique({
             where:{
                 githubId:githubProfile.id.toString()
             }
         })
+        if(user){
+           await prisma.user.update({
+                where:{
+                    githubId:githubProfile.id.toString()
+                },
+                data:{
+                    githubAccessToken:access_token,
+                    image:githubProfile.avatar_url
+                }
+            });
+        }else{
+           await prisma.user.create({
+            data:{
+                email,
+                githubId:githubProfile.id.toString(),
+                githubAccessToken:access_token,
+                image:githubProfile.avatar_url
+            }
+           })
+        }
+
+        const token=await jwt.sign({userId:user?.id,email:user?.email},process.env.JWT_SECRET as string ,{expiresIn:"7d"})
+
+        const response=NextResponse.redirect("http://localhost:3000/dashboard")
+
+        response.cookies.set("token",token,{
+            httpOnly:true,
+            secure:process.env.NODE_ENV==="production",
+            sameSite:"lax",
+            maxAge:60*60*24*7,
+            path:'/'
+        });
+        return response;
+
     } catch (error) {
         console.log(error)
 
