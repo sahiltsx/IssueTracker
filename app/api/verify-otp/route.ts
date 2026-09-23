@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
         await prisma.otp.delete({ where: { email } });
 
-        let user = await prisma.user.findUnique({ where: { email } });
+        let user = await prisma.user.findFirst({ where: { email } });
 
         if (!user) {
             user = await prisma.user.create({

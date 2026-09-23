@@ -24,7 +24,7 @@ export default function Login() {
         setLoading(true);
 
         try {
-            await axios.post("/api/auth/login", { email });
+            await axios.post("/api/v1/login", { email });
             setStep("code");
         } catch (err: any) {
             setError(err.response?.data?.message || "Something went wrong");
@@ -39,7 +39,7 @@ export default function Login() {
         setLoading(true);
 
         try {
-            await axios.post("/api/auth/verify-otp", { email, code });
+            await axios.post("/api/verify-otp", { email, code });
             router.push("/dashboard");
         } catch (err: any) {
             setError(err.response?.data?.message || "Something went wrong");
