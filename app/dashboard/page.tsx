@@ -101,6 +101,21 @@ export default function Dashboard() {
     }
   };
 
+  const handleDragStart=(e:React.DragEvent,id:string)=>{
+        e.dataTransfer.setData("text/plain",id)
+  };
+
+  const handleDrop=(e:React.DragEvent,targetStatus:string)=>{
+       e.preventDefault();
+       const id=e.dataTransfer.getData("text/plain");
+
+       setIssues((prev)=>
+        prev.map((item)=>
+          item.id===id?{...item,status:targetStatus}:item
+        )
+      )
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 px-6 py-6">
       <div className="max-w-6xl mx-auto">
