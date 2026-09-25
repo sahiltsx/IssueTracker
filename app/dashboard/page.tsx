@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const DUMMY_ISSUES = [
   {
@@ -54,16 +55,37 @@ const COLUMNS = [
 ];
 
 export default function Dashboard() {
-  const [issues,setIssues] = useState(DUMMY_ISSUES);
+  const [issues, setIssues] = useState(DUMMY_ISSUES);
   const [search, setSearch] = useState("");
-  const [title,newTitle]=useState("");
-  const [priority,setPriority]=useState("Medium")
-  const[tag,setTag]=useState("features")
+  const [isOpen, setIsOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newPriority, setNewPriority] = useState("Medium");
+  const [newTag, setNewTag] = useState("feature");
 
-  const filteredIssues = issues.filter((issue) =>
-    issue.title.toLowerCase().includes(search.toLowerCase()) ||
-    issue.issueKey.toLowerCase().includes(search.toLowerCase()) ||
-    issue.tag.toLowerCase().includes(search.toLowerCase())
+  const handleIssue = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+
+    const newItem = {
+      id: String(Date.now()),
+      issueKey: `ISS-${100 + issues.length + 1}`,
+      title: newTitle,
+      priority: newPriority,
+      status: "TODO",
+      tag: newTag || "task",
+    };
+    setIssues([newItem, ...issues]);
+    setNewTitle("");
+    setNewTag("feature");
+    setNewPriority("Medium");
+    setIsOpen(false);
+  };
+
+  const filteredIssues = issues.filter(
+    (issue) =>
+      issue.title.toLowerCase().includes(search.toLowerCase()) ||
+      issue.issueKey.toLowerCase().includes(search.toLowerCase()) ||
+      issue.tag.toLowerCase().includes(search.toLowerCase())
   );
 
   const getPriorityColor = (priority: string) => {
@@ -88,9 +110,75 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button  variant="outline" className="text-violet-400 text-sm h-9">
-              New Issue
-            </Button>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="text-violet-400 text-sm h-9">
+                  New Issue
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-zinc-950 border border-zinc-800 text-zinc-100 sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="text-base font-semibold">Create New Issue</DialogTitle>
+                </DialogHeader>
+
+                <form onSubmit={handleIssue} className="space-y-4 pt-2">
+                  <div>
+                    <label className="text-xs text-zinc-400 font-medium">Title</label>
+                    <input
+                      required
+                      placeholder="e.g., Fix navbar overlap on mobile"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 mt-1 focus:outline-none focus:border-zinc-700"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-zinc-400 font-medium">Priority</label>
+                      <select
+                        value={newPriority}
+                        onChange={(e) => setNewPriority(e.target.value)}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-xs text-zinc-200 mt-1 focus:outline-none"
+                      >
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Urgent">Urgent</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-zinc-400 font-medium">Tag</label>
+                      <input
+                        placeholder="e.g., ui, backend"
+                        value={newTag}
+                        onChange={(e) => setNewTag(e.target.value)}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 mt-1 focus:outline-none focus:border-zinc-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsOpen(false)}
+                      className="border-zinc-800 text-zinc-400 text-xs h-8"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-blue-600 hover:bg-blue-500 text-white text-xs h-8"
+                    >
+                      Create
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+
             <span className="text-sm font-medium text-zinc-400">User Profile</span>
           </div>
         </header>
