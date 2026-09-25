@@ -54,8 +54,11 @@ const COLUMNS = [
 ];
 
 export default function Dashboard() {
-  const [issues] = useState(DUMMY_ISSUES);
+  const [issues,setIssues] = useState(DUMMY_ISSUES);
   const [search, setSearch] = useState("");
+  const [title,newTitle]=useState("");
+  const [priority,setPriority]=useState("Medium")
+  const[tag,setTag]=useState("features")
 
   const filteredIssues = issues.filter((issue) =>
     issue.title.toLowerCase().includes(search.toLowerCase()) ||
