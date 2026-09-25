@@ -104,7 +104,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 px-6 py-6">
       <div className="max-w-6xl mx-auto">
-        <header className="flex items-center justify-between pb-5 border-b border-zinc-900">
+        <header className="flex items-center justify-between pb-5 border-b border-zinc-800">
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-semibold tracking-tight">Issue Tracker</h2>
           </div>
