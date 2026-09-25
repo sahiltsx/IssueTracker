@@ -223,6 +223,8 @@ export default function Dashboard() {
             return (
               <div
                 key={column.id}
+                onDragOver={(e)=>e.preventDefault()}
+                onDrag={(e)=>handleDrop(e,column.id)}
                 className="bg-zinc-900/50 border border-zinc-800/80 rounded-xl p-4 min-h-112.5 flex flex-col"
               >
                 <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
@@ -235,6 +237,8 @@ export default function Dashboard() {
                   {columnIssues.map((issue) => (
                     <div
                       key={issue.id}
+                      draggable
+                      onDragStart={(e)=>handleDragStart(e,issue.id)}
                       className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 hover:border-zinc-700 transition cursor-pointer"
                     >
                       <div className="flex justify-between items-center text-xs mb-2">
