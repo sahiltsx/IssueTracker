@@ -127,7 +127,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="text-violet-400 text-sm h-9">
+                <Button variant="outline" className="text-sm h-9">
                   New Issue
                 </Button>
               </DialogTrigger>
@@ -184,8 +184,9 @@ export default function Dashboard() {
                       Cancel
                     </Button>
                     <Button
+                     variant="outline"
                       type="submit"
-                      className="bg-blue-600 hover:bg-blue-500 text-white text-xs h-8"
+                      className="text-white text-sm h-8"
                     >
                       Create
                     </Button>
@@ -224,7 +225,7 @@ export default function Dashboard() {
               <div
                 key={column.id}
                 onDragOver={(e)=>e.preventDefault()}
-                onDrag={(e)=>handleDrop(e,column.id)}
+                onDrop={(e)=>handleDrop(e,column.id)}
                 className="bg-zinc-900/50 border border-zinc-800/80 rounded-xl p-4 min-h-112.5 flex flex-col"
               >
                 <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
