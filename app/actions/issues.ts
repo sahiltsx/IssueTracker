@@ -1,11 +1,10 @@
+"use server"
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { IssueStatus ,IssuePriority } from "../types/issue";
 
-export type IssueStatus="TODO" | "IN_PROGRESS" | "DONE" ;
-export type IssuePriority="Low" | "Medium" | "High" ;
 
 // fetch all issues
-
 export async function getIssues() {
     try {
         const issues=await prisma.issue.findMany({
@@ -20,7 +19,6 @@ export async function getIssues() {
 }
 
 // create new issue
-
 export async function createIssues(data:{
     title:string,
     priority:IssuePriority,
@@ -49,8 +47,8 @@ export async function createIssues(data:{
 }
 
 // update a issue
-
 export async function updateIssue(id:string,status:IssueStatus) {
+        console.log("Attempting to update issue with id:", id);
     try{
       const updated=await prisma.issue.update({
         where:{id},
