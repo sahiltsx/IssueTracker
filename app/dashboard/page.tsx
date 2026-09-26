@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
+import { Sheet,SheetContent,SheetHeader,SheetTitle } from "@/components/ui/sheet";
 const DUMMY_ISSUES = [
   {
     id: "1",
@@ -61,6 +61,7 @@ export default function Dashboard() {
   const [newTitle, setNewTitle] = useState("");
   const [newPriority, setNewPriority] = useState("Medium");
   const [newTag, setNewTag] = useState("feature");
+  const [selectedIssues,setSelectedIssues]=useState<any | null>(null)
 
   const handleIssue = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +115,12 @@ export default function Dashboard() {
           item.id===id?{...item,status:targetStatus}:item
         )
       )
+  }
+
+  const handleDeleteIssues=(id:string)=>{
+      setIssues((prev)=>
+      prev.filter((item)=>item.id !==id))
+      setSelectedIssues(null)
   }
 
   return (
@@ -240,6 +247,7 @@ export default function Dashboard() {
                       key={issue.id}
                       draggable
                       onDragStart={(e)=>handleDragStart(e,issue.id)}
+                      onClick={()=>setSelectedIssues(issue)}
                       className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 hover:border-zinc-700 transition cursor-pointer"
                     >
                       <div className="flex justify-between items-center text-xs mb-2">
@@ -266,6 +274,10 @@ export default function Dashboard() {
             );
           })}
         </div>
+
+        <Sheet>
+          nothing here now !
+        </Sheet> 
       </div>
     </div>
   );
