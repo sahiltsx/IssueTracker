@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet,SheetContent,SheetHeader,SheetTitle } from "@/components/ui/sheet";
+
+
 const DUMMY_ISSUES = [
   {
     id: "1",
@@ -274,10 +276,92 @@ export default function Dashboard() {
             );
           })}
         </div>
+        {/* Issue Details Sheet */}
+<Sheet
+  open={Boolean(selectedIssues)}
+  onOpenChange={(open) => !open && setSelectedIssues(null)}
+>
+  <SheetContent className="bg-zinc-950 border-l border-zinc-800 text-zinc-100 sm:max-w-md flex flex-col justify-between">
+    {selectedIssues && (
+      <div className="space-y-6 pt-4">
+        <SheetHeader className="text-left space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs text-zinc-500 font-semibold">
+              #{selectedIssues.issueKey}
+            </span>
+            <span
+              className={`text-xs font-medium px-2 py-0.5 rounded border border-zinc-800 bg-zinc-900 ${getPriorityColor(
+                selectedIssues.priority
+              )}`}
+            >
+              {selectedIssues.priority}
+            </span>
+          </div>
+          <SheetTitle className="text-lg font-semibold text-zinc-100">
+            {selectedIssues.title}
+          </SheetTitle>
+        </SheetHeader>
 
-        <Sheet>
-          nothing here now !
-        </Sheet> 
+        {/* Git Branch Helper */}
+        <div className="bg-zinc-900 border border-zinc-800 p-3 rounded-lg flex items-center justify-between">
+          <span className="font-mono text-xs text-zinc-400 truncate max-w-60">
+            git checkout -b {selectedIssues.issueKey.toLowerCase()}-
+            {selectedIssues.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 20)}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs border-zinc-700 text-zinc-300"
+            onClick={() => {
+              navigator.clipboard.writeText(
+                `git checkout -b ${selectedIssues.issueKey.toLowerCase()}-${selectedIssues.title
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .slice(0, 20)}`
+              );
+            }}
+          >
+            Copy
+          </Button>
+        </div>
+
+        {/* Change Status */}
+        <div className="space-y-2">
+          <label className="text-xs text-zinc-400 font-medium">Status</label>
+          <select
+            value={selectedIssues.status}
+            onChange={(e) => {
+              const updatedStatus = e.target.value;
+              setIssues((prev) =>
+                prev.map((i) =>
+                  i.id === selectedIssues.id ? { ...i, status: updatedStatus } : i
+                )
+              );
+              setSelectedIssues({ ...selectedIssues, status: updatedStatus });
+            }}
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none"
+          >
+            <option value="TODO">To Do</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="DONE">Done</option>
+          </select>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="pt-6 border-t border-zinc-800">
+          <Button
+            variant="destructive"
+            size="sm"
+            className="w-full text-xs"
+            onClick={() => handleDeleteIssues(selectedIssues.id)}
+          >
+            Delete Issue
+          </Button>
+        </div>
+      </div>
+    )}
+  </SheetContent>
+</Sheet>
       </div>
     </div>
   );
