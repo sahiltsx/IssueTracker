@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet,SheetContent,SheetHeader,SheetTitle } from "@/components/ui/sheet";
+import { createIssues,updateIssue,deleteIssue } from "../actions/issues";
 
 const DUMMY_ISSUES = [
   {
@@ -84,6 +85,36 @@ export default function Dashboard() {
     setIsOpen(false);
   };
 
+  const handleCreateIssue=async(e:React.FormEvent)=>{
+       e.preventDefault();
+       if(!newTitle.trim())
+        return;
+
+       const tempId=String(Date.now());
+       const optimisticIssue={
+        id:tempId,
+        issueKey:`ISS-${100 + issues.length +1}`,
+        title:newTitle,
+        priority:newPriority,
+        status:"TODO",
+        tag:newTag || "task"
+       }
+
+       setIssues((prev)=>[optimisticIssue,...prev])
+       setNewTitle("")
+       setIsOpen(false)
+
+       const res=await createIssues({
+          title:newTitle,
+          priority:newPriority as any,
+          tag:newTag
+       })
+
+       if(!res.success){
+        setIssues((prev)=>prev.filter((i)=>i.id!==tempId));
+       }
+  };
+
   const filteredIssues = issues.filter(
     (issue) =>
       issue.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -108,7 +139,7 @@ export default function Dashboard() {
         e.dataTransfer.setData("text/plain",id)
   };
 
-  const handleDrop=(e:React.DragEvent,targetStatus:string)=>{
+  const handleDrop=async(e:React.DragEvent,targetStatus:string)=>{
        e.preventDefault();
        const id=e.dataTransfer.getData("text/plain");
 
@@ -116,13 +147,17 @@ export default function Dashboard() {
         prev.map((item)=>
           item.id===id?{...item,status:targetStatus}:item
         )
-      )
+      );
+
+      await updateIssue(id,targetStatus as any)
   }
 
-  const handleDeleteIssues=(id:string)=>{
+  const handleDeleteIssues=async(id:string)=>{
       setIssues((prev)=>
       prev.filter((item)=>item.id !==id))
       setSelectedIssues(null)
+
+      await deleteIssue(id);
   }
 
   return (
