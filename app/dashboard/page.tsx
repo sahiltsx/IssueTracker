@@ -1,53 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import {toast} from "sonner"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Sheet,SheetContent,SheetHeader,SheetTitle } from "@/components/ui/sheet";
-import { createIssues,updateIssue,deleteIssue } from "../actions/issues";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { createIssues, updateIssue, deleteIssue } from "../actions/issues";
+import { useSession } from "../hooks/session";
 
 const DUMMY_ISSUES = [
-  {
-    id: "1",
-    issueKey: "ISS-101",
-    title: "Implement user authentication with JWT & refresh tokens",
-    priority: "High",
-    status: "TODO",
-    tag: "backend",
-  },
-  {
-    id: "2",
-    issueKey: "ISS-102",
-    title: "Setup PostgreSQL schema and migrate initial tables",
-    priority: "Medium",
-    status: "TODO",
-    tag: "database",
-  },
-  {
-    id: "3",
-    issueKey: "ISS-103",
-    title: "Fix login page layout shifts on mobile viewport",
-    priority: "Urgent",
-    status: "IN_PROGRESS",
-    tag: "bug",
-  },
-  {
-    id: "4",
-    issueKey: "ISS-104",
-    title: "Integrate shadcn dialog for ticket creation modal",
-    priority: "Medium",
-    status: "IN_PROGRESS",
-    tag: "frontend",
-  },
-  {
-    id: "5",
-    issueKey: "ISS-105",
-    title: "Configure Tailwind CSS dark theme tokens",
-    priority: "Low",
-    status: "DONE",
-    tag: "ui",
-  },
+  { id: "1", issueKey: "ISS-101", title: "Implement user authentication with JWT & refresh tokens", priority: "High", status: "TODO", tag: "backend" },
+  { id: "2", issueKey: "ISS-102", title: "Setup PostgreSQL schema and migrate initial tables", priority: "Medium", status: "TODO", tag: "database" },
+  { id: "3", issueKey: "ISS-103", title: "Fix login page layout shifts on mobile viewport", priority: "Urgent", status: "IN_PROGRESS", tag: "bug" },
+  { id: "4", issueKey: "ISS-104", title: "Integrate shadcn dialog for ticket creation modal", priority: "Medium", status: "IN_PROGRESS", tag: "frontend" },
+  { id: "5", issueKey: "ISS-105", title: "Configure Tailwind CSS dark theme tokens", priority: "Low", status: "DONE", tag: "ui" },
 ];
 
 const COLUMNS = [
@@ -63,57 +30,10 @@ export default function Dashboard() {
   const [newTitle, setNewTitle] = useState("");
   const [newPriority, setNewPriority] = useState("Medium");
   const [newTag, setNewTag] = useState("feature");
-  const [selectedIssues,setSelectedIssues]=useState<any | null>(null)
-  const [copied,setCopied]=useState(false)
-
-  const handleIssue = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim()) return;
-
-    const newItem = {
-      id: String(Date.now()),
-      issueKey: `ISS-${100 + issues.length + 1}`,
-      title: newTitle,
-      priority: newPriority,
-      status: "TODO",
-      tag: newTag || "task",
-    };
-    setIssues([newItem, ...issues]);
-    setNewTitle("");
-    setNewTag("feature");
-    setNewPriority("Medium");
-    setIsOpen(false);
-  };
-
-  const handleCreateIssue=async(e:React.FormEvent)=>{
-       e.preventDefault();
-       if(!newTitle.trim())
-        return;
-
-       const tempId=String(Date.now());
-       const optimisticIssue={
-        id:tempId,
-        issueKey:`ISS-${100 + issues.length +1}`,
-        title:newTitle,
-        priority:newPriority,
-        status:"TODO",
-        tag:newTag || "task"
-       }
-
-       setIssues((prev)=>[optimisticIssue,...prev])
-       setNewTitle("")
-       setIsOpen(false)
-
-       const res=await createIssues({
-          title:newTitle,
-          priority:newPriority as any,
-          tag:newTag
-       })
-
-       if(!res.success){
-        setIssues((prev)=>prev.filter((i)=>i.id!==tempId));
-       }
-  };
+  const [selectedIssues, setSelectedIssues] = useState<any | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [filteredMyIssues, setFilteredMyIssues] = useState(false);
+  const { user: sessionUser } = useSession();
 
   const filteredIssues = issues.filter(
     (issue) =>
@@ -121,6 +41,32 @@ export default function Dashboard() {
       issue.issueKey.toLowerCase().includes(search.toLowerCase()) ||
       issue.tag.toLowerCase().includes(search.toLowerCase())
   );
+
+  const displayedIssues = filteredIssues.filter((issue: any) => {
+    if (!filteredMyIssues) return true;
+    return issue.assigneeId === sessionUser?.id;
+  });
+
+  const handleCreateIssue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+
+    const res = await createIssues({
+      title: newTitle,
+      priority: newPriority as any,
+      tag: newTag,
+      assigneeId: sessionUser?.id, // Passes the logged-in user ID
+    });
+
+    if (res.success && res.data) {
+      setIssues((prev) => [res.data, ...prev]);
+      toast.success("Issue created successfully");
+      setNewTitle("");
+      setIsOpen(false);
+    } else {
+      toast.error("Failed to create issue");
+    }
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -135,30 +81,27 @@ export default function Dashboard() {
     }
   };
 
-  const handleDragStart=(e:React.DragEvent,id:string)=>{
-        e.dataTransfer.setData("text/plain",id)
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    e.dataTransfer.setData("text/plain", id);
   };
 
-  const handleDrop=async(e:React.DragEvent,targetStatus:string)=>{
-       e.preventDefault();
-       const id=e.dataTransfer.getData("text/plain");
+  const handleDrop = async (e: React.DragEvent, targetStatus: string) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData("text/plain");
 
-       setIssues((prev)=>
-        prev.map((item)=>
-          item.id===id?{...item,status:targetStatus}:item
-        )
-      );
+    setIssues((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, status: targetStatus } : item))
+    );
 
-      await updateIssue(id,targetStatus as any)
-  }
+    await updateIssue(id, targetStatus as any);
+  };
 
-  const handleDeleteIssues=async(id:string)=>{
-      setIssues((prev)=>
-      prev.filter((item)=>item.id !==id))
-      setSelectedIssues(null)
+  const handleDeleteIssues = async (id: string) => {
+    setIssues((prev) => prev.filter((item) => item.id !== id));
+    setSelectedIssues(null);
 
-      await deleteIssue(id);
-  }
+    await deleteIssue(id);
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 px-6 py-6">
@@ -180,7 +123,7 @@ export default function Dashboard() {
                   <DialogTitle className="text-base font-semibold">Create New Issue</DialogTitle>
                 </DialogHeader>
 
-                <form onSubmit={handleIssue} className="space-y-4 pt-2">
+                <form onSubmit={handleCreateIssue} className="space-y-4 pt-2">
                   <div>
                     <label className="text-xs text-zinc-400 font-medium">Title</label>
                     <input
@@ -227,11 +170,7 @@ export default function Dashboard() {
                     >
                       Cancel
                     </Button>
-                    <Button
-                     variant="outline"
-                      type="submit"
-                      className="text-white text-sm h-8"
-                    >
+                    <Button variant="outline" type="submit" className="text-white text-sm h-8">
                       Create
                     </Button>
                   </div>
@@ -252,10 +191,20 @@ export default function Dashboard() {
               onChange={(e) => setSearch(e.target.value)}
               className="bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 w-64"
             />
-            <Button variant="outline" size="sm" className="border-zinc-800 text-zinc-300">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setFilteredMyIssues(false)}
+              className={`border-zinc-800 ${!filteredMyIssues ? "text-zinc-100" : "text-zinc-400"}`}
+            >
               All
             </Button>
-            <Button variant="outline" size="sm" className="border-zinc-800 text-zinc-400">
+            <Button
+              variant={filteredIssues?"default":"outline"}
+              size="sm"
+              onClick={() => setFilteredMyIssues(!filteredMyIssues)}
+              className={`border-zinc-800 ${filteredMyIssues ? "text-zinc-100" : "text-zinc-400"}`}
+            >
               My Issues
             </Button>
           </div>
@@ -263,13 +212,13 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {COLUMNS.map((column) => {
-            const columnIssues = filteredIssues.filter((i) => i.status === column.id);
+            const columnIssues = displayedIssues.filter((i: any) => i.status === column.id);
 
             return (
               <div
                 key={column.id}
-                onDragOver={(e)=>e.preventDefault()}
-                onDrop={(e)=>handleDrop(e,column.id)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => handleDrop(e, column.id)}
                 className="bg-zinc-900/50 border border-zinc-800/80 rounded-xl p-4 min-h-112.5 flex flex-col"
               >
                 <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
@@ -279,12 +228,12 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <div className="space-y-3 flex-1">
-                  {columnIssues.map((issue) => (
+                  {columnIssues.map((issue: any) => (
                     <div
                       key={issue.id}
                       draggable
-                      onDragStart={(e)=>handleDragStart(e,issue.id)}
-                      onClick={()=>setSelectedIssues(issue)}
+                      onDragStart={(e) => handleDragStart(e, issue.id)}
+                      onClick={() => setSelectedIssues(issue)}
                       className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 hover:border-zinc-700 transition cursor-pointer"
                     >
                       <div className="flex justify-between items-center text-xs mb-2">
@@ -311,95 +260,89 @@ export default function Dashboard() {
             );
           })}
         </div>
-        {/* Issue Details Sheet */}
-<Sheet
-  open={Boolean(selectedIssues)}
-  onOpenChange={(open) => !open && setSelectedIssues(null)}
->
-  <SheetContent className="bg-zinc-950 border-l border-zinc-800 text-zinc-100 sm:max-w-md flex flex-col justify-between">
-    {selectedIssues && (
-      <div className="space-y-6 pt-4">
-        <SheetHeader className="text-left space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs text-zinc-500 font-semibold">
-              #{selectedIssues.issueKey}
-            </span>
-            <span
-              className={`text-xs font-medium px-2 py-0.5 rounded border border-zinc-800 bg-zinc-900 ${getPriorityColor(
-                selectedIssues.priority
-              )}`}
-            >
-              {selectedIssues.priority}
-            </span>
-          </div>
-          <SheetTitle className="text-lg font-semibold text-zinc-100">
-            {selectedIssues.title}
-          </SheetTitle>
-        </SheetHeader>
 
-        {/* Git Branch Helper */}
-        <div className="bg-zinc-900 border border-zinc-800 p-3 rounded-lg flex items-center justify-between">
-          <span className="font-mono text-xs text-zinc-400 truncate max-w-60">
-            git checkout -b {selectedIssues.issueKey.toLowerCase()}-
-            {selectedIssues.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 20)}
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 text-xs border-zinc-700 text-zinc-300"
-            onClick={() => {
-              navigator.clipboard.writeText(
-                `git checkout -b ${selectedIssues.issueKey.toLowerCase()}-${selectedIssues.title
-                  .toLowerCase()
-                  .replace(/[^a-z0-9]+/g, "-")
-                  .slice(0, 20)}`
-              ).then(()=>{
-                setCopied(true)
-                setTimeout(()=>setCopied(false),1500);
-              })
-            }}
-          >
-            {copied ? "copied":"Copy"}
-          </Button>
-        </div>
+        <Sheet open={Boolean(selectedIssues)} onOpenChange={(open) => !open && setSelectedIssues(null)}>
+          <SheetContent className="bg-zinc-950 border-l border-zinc-800 text-zinc-100 sm:max-w-md flex flex-col justify-between">
+            {selectedIssues && (
+              <div className="space-y-6 pt-4">
+                <SheetHeader className="text-left space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs text-zinc-500 font-semibold">
+                      #{selectedIssues.issueKey}
+                    </span>
+                    <span
+                      className={`text-xs font-medium px-2 py-0.5 rounded border border-zinc-800 bg-zinc-900 ${getPriorityColor(
+                        selectedIssues.priority
+                      )}`}
+                    >
+                      {selectedIssues.priority}
+                    </span>
+                  </div>
+                  <SheetTitle className="text-lg font-semibold text-zinc-100">
+                    {selectedIssues.title}
+                  </SheetTitle>
+                </SheetHeader>
 
-        {/* Change Status */}
-        <div className="space-y-2">
-          <label className="text-xs text-zinc-400 font-medium">Status</label>
-          <select
-            value={selectedIssues.status}
-            onChange={(e) => {
-              const updatedStatus = e.target.value;
-              setIssues((prev) =>
-                prev.map((i) =>
-                  i.id === selectedIssues.id ? { ...i, status: updatedStatus } : i
-                )
-              );
-              setSelectedIssues({ ...selectedIssues, status: updatedStatus });
-            }}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none"
-          >
-            <option value="TODO">To Do</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="DONE">Done</option>
-          </select>
-        </div>
+                <div className="bg-zinc-900 border border-zinc-800 p-3 rounded-lg flex items-center justify-between">
+                  <span className="font-mono text-xs text-zinc-400 truncate max-w-60">
+                    git checkout -b {selectedIssues.issueKey.toLowerCase()}-
+                    {selectedIssues.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 20)}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs border-zinc-700 text-zinc-300"
+                    onClick={() => {
+                      navigator.clipboard
+                        .writeText(
+                          `git checkout -b ${selectedIssues.issueKey.toLowerCase()}-${selectedIssues.title
+                            .toLowerCase()
+                            .replace(/[^a-z0-9]+/g, "-")
+                            .slice(0, 20)}`
+                        )
+                        .then(() => {
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 1500);
+                        });
+                    }}
+                  >
+                    {copied ? "copied" : "Copy"}
+                  </Button>
+                </div>
 
-        {/* Danger Zone */}
-        <div className="pt-6 border-t border-zinc-800">
-          <Button
-            variant="destructive"
-            size="sm"
-            className="w-full text-xs"
-            onClick={() => handleDeleteIssues(selectedIssues.id)}
-          >
-            Delete Issue
-          </Button>
-        </div>
-      </div>
-    )}
-  </SheetContent>
-</Sheet>
+                <div className="space-y-2">
+                  <label className="text-xs text-zinc-400 font-medium">Status</label>
+                  <select
+                    value={selectedIssues.status}
+                    onChange={(e) => {
+                      const updatedStatus = e.target.value;
+                      setIssues((prev) =>
+                        prev.map((i) => (i.id === selectedIssues.id ? { ...i, status: updatedStatus } : i))
+                      );
+                      setSelectedIssues({ ...selectedIssues, status: updatedStatus });
+                    }}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none"
+                  >
+                    <option value="TODO">To Do</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="DONE">Done</option>
+                  </select>
+                </div>
+
+                <div className="pt-6 border-t border-zinc-800">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => handleDeleteIssues(selectedIssues.id)}
+                  >
+                    Delete Issue
+                  </Button>
+                </div>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );

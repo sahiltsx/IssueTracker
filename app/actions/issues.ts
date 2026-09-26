@@ -8,12 +8,16 @@ import { IssueStatus ,IssuePriority } from "../types/issue";
 export async function getIssues() {
     try {
         const issues=await prisma.issue.findMany({
+            include:{
+                assignee:{
+                    select:{id:true,email:true,name:true}
+                }
+            },
             orderBy:{createdAt:"desc"},
         });
         return issues;
     } catch (error) {
         console.error("Failed to fetch the issues:",error);
-
         return [];
     }
 }
@@ -22,7 +26,8 @@ export async function getIssues() {
 export async function createIssues(data:{
     title:string,
     priority:IssuePriority,
-    tag:string
+    tag:string,
+    assigneeId?:string
 }) {
     try {
         const count=await prisma.issue.count();
@@ -34,14 +39,19 @@ export async function createIssues(data:{
                 title:data.title,
                 priority:data.priority,
                 tag:data.tag ||"task",
-                status:"TODO"
+                status:"TODO",
+                assigneeId:data.assigneeId
             },
+            include:{
+                assignee:{
+                    select:{id:true,email:true,name:true}
+                }
+            }
         });
         revalidatePath("/");
         return{success:true,data:newIssues};
     } catch (error) {
         console.log("Failed to create a new issues:",error);
-
         return{success:false,error:"Failed to create issue"};
     }
 }
