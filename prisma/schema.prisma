@@ -16,6 +16,7 @@ model User{
   emailVerified     String?
   githubId          String? @unique
   githubAccessToken String?
+  issues            Issue[] @relation("AssignedIssues")
   createdAt         DateTime  @default(now())
 }
 
@@ -25,4 +26,32 @@ model Otp {
   code      String  
   expiresAt DateTime
   attempts  Int       @default(0)
+}
+
+enum Status{
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum Priority{
+  Low
+  Medium
+  High
+  Urgent
+}
+
+model Issue{
+  id              String   @id @default(cuid())
+  issueKey        String   @unique
+  title           String
+  description     String?
+  status          Status   @default(TODO)
+  priority        Priority @default(Medium)
+  tag             String   @default("task")
+
+  assigneeId      String?
+  assignee        User?    @relation("AssignedIssues",fields: [assigneeId],references: [id],onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
