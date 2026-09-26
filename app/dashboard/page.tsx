@@ -64,6 +64,7 @@ export default function Dashboard() {
   const [newPriority, setNewPriority] = useState("Medium");
   const [newTag, setNewTag] = useState("feature");
   const [selectedIssues,setSelectedIssues]=useState<any | null>(null)
+  const [copied,setCopied]=useState(false)
 
   const handleIssue = (e: React.FormEvent) => {
     e.preventDefault();
@@ -318,10 +319,13 @@ export default function Dashboard() {
                   .toLowerCase()
                   .replace(/[^a-z0-9]+/g, "-")
                   .slice(0, 20)}`
-              );
+              ).then(()=>{
+                setCopied(true)
+                setTimeout(()=>setCopied(false),1500);
+              })
             }}
           >
-            Copy
+            {copied ? "copied":"Copy"}
           </Button>
         </div>
 
