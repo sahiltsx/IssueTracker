@@ -200,7 +200,7 @@ export default function Dashboard() {
               All
             </Button>
             <Button
-              variant={filteredIssues?"default":"outline"}
+              variant={filteredIssues?"ghost":"outline"}
               size="sm"
               onClick={() => setFilteredMyIssues(!filteredMyIssues)}
               className={`border-zinc-800 ${filteredMyIssues ? "text-zinc-100" : "text-zinc-400"}`}
