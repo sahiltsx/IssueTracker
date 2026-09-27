@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { createIssues, updateIssue, deleteIssue } from "../actions/issues";
 import { useSession } from "../hooks/session";
+import { setPriority } from "os";
 
 const DUMMY_ISSUES = [
   { id: "1", issueKey: "ISS-101", title: "Implement user authentication with JWT & refresh tokens", priority: "High", status: "TODO", tag: "backend" },

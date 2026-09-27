@@ -57,12 +57,17 @@ export async function createIssues(data:{
 }
 
 // update a issue
-export async function updateIssue(id:string,status:IssueStatus) {
-        console.log("Attempting to update issue with id:", id);
+export async function updateIssue(id:string,data:{
+    title:string,description?:string,priority:IssuePriority
+}) {
     try{
       const updated=await prisma.issue.update({
         where:{id},
-        data:{status}
+        data:{
+            title:data.title,
+            description:data.description,
+            priority:data.priority
+        }
       });
       revalidatePath("/");
       return {succes:true,data:updated}
