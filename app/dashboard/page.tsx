@@ -8,14 +8,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { createIssues, updateIssue, deleteIssue } from "../actions/issues";
 import { useSession } from "../hooks/session";
-import { setPriority } from "os";
+import { fetchOpenSourceIssues,GitHubIssue } from "../actions/github";
+import { OpenSourceCard } from "@/components/OpenSourceCard";
+import { Issue } from "../types/issue";
 
-const DUMMY_ISSUES = [
-  { id: "1", issueKey: "ISS-101", title: "Implement user authentication with JWT & refresh tokens", priority: "High", status: "TODO", tag: "backend" },
-  { id: "2", issueKey: "ISS-102", title: "Setup PostgreSQL schema and migrate initial tables", priority: "Medium", status: "TODO", tag: "database" },
-  { id: "3", issueKey: "ISS-103", title: "Fix login page layout shifts on mobile viewport", priority: "Urgent", status: "IN_PROGRESS", tag: "bug" },
-  { id: "4", issueKey: "ISS-104", title: "Integrate shadcn dialog for ticket creation modal", priority: "Medium", status: "IN_PROGRESS", tag: "frontend" },
-  { id: "5", issueKey: "ISS-105", title: "Configure Tailwind CSS dark theme tokens", priority: "Low", status: "DONE", tag: "ui" },
+const DUMMY_ISSUES: Issue[] = [
+  { id: "1", issueKey: "ISS-101", title: "Implement user authentication with JWT & refresh tokens", priority: "High", status: "TODO", tag: "backend", assignee: null },
+  { id: "2", issueKey: "ISS-102", title: "Setup PostgreSQL schema and migrate initial tables", priority: "Medium", status: "TODO", tag: "database", assignee: null },
+  { id: "3", issueKey: "ISS-103", title: "Fix login page layout shifts on mobile viewport", priority: "Urgent", status: "IN_PROGRESS", tag: "bug", assignee: { name: "Sahil Sharma" } },
+  { id: "4", issueKey: "ISS-104", title: "Integrate shadcn dialog for ticket creation modal", priority: "Medium", status: "IN_PROGRESS", tag: "frontend", assignee: null },
+  { id: "5", issueKey: "ISS-105", title: "Configure Tailwind CSS dark theme tokens", priority: "Low", status: "DONE", tag: "ui", assignee: null },
 ];
 
 const COLUMNS = [
@@ -25,15 +27,20 @@ const COLUMNS = [
 ];
 
 export default function Dashboard() {
-  const [issues, setIssues] = useState(DUMMY_ISSUES);
+  const [issues, setIssues] = useState<Issue[]>(DUMMY_ISSUES);
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newPriority, setNewPriority] = useState("Medium");
   const [newTag, setNewTag] = useState("feature");
-  const [selectedIssues, setSelectedIssues] = useState<any | null>(null);
+  const [selectedIssues, setSelectedIssues] = useState<Issue | null>(null);
   const [copied, setCopied] = useState(false);
   const [filteredMyIssues, setFilteredMyIssues] = useState(false);
+  const [activeTab, setActiveTab] = useState<"board" | "oss">("board");
+  const [ossIssues, setOssIssues] = useState<GitHubIssue[]>([]);
+  const [ossLanguage, setOssLanguage] = useState("typescript");
+  const [ossLoading, setOssLoading] = useState(false);
+
   const { user: sessionUser } = useSession();
 
   const filteredIssues = issues.filter(
@@ -103,6 +110,39 @@ export default function Dashboard() {
 
     await deleteIssue(id);
   };
+    
+  // Load issues from GitHub
+  const loadOssIssues = async (lang: string) => {
+  setOssLoading(true);
+  const res = await fetchOpenSourceIssues(lang);
+  if (res.success) {
+    setOssIssues(res.data);
+  } else {
+    toast.error("Could not fetch GitHub issues");
+  }
+  setOssLoading(false);
+};
+ 
+// Import an OSS issue into your board
+const handleImportToBoard = async (ossItem: GitHubIssue) => {
+  const title = `[${ossItem.repo_name}] ${ossItem.title}`;
+
+  const res = await createIssues({
+    title,
+    priority: "Medium",
+    tag: "open-source",
+    assigneeId: sessionUser?.id,
+  });
+
+  if (res.success && res.data) {
+    setIssues((prev) => [res.data, ...prev]);
+    toast.success(`Tracked issue #${ossItem.number} on your board!`);
+    setActiveTab("board"); // Switch back to view the added card
+  } else {
+    toast.error("Failed to track issue");
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 px-6 py-6">
@@ -183,84 +223,198 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 py-6">
-          <div className="flex items-center gap-3">
-            <Input
-              type="text"
-              placeholder="Search issues..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 w-64"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setFilteredMyIssues(false)}
-              className={`border-zinc-800 ${!filteredMyIssues ? "text-zinc-100" : "text-zinc-400"}`}
-            >
-              All
-            </Button>
-            <Button
-              variant={filteredIssues?"ghost":"outline"}
-              size="sm"
-              onClick={() => setFilteredMyIssues(!filteredMyIssues)}
-              className={`border-zinc-800 ${filteredMyIssues ? "text-zinc-100" : "text-zinc-400"}`}
-            >
-              My Issues
-            </Button>
+        {/* View Tabs */}
+<div className="flex gap-6 border-b border-zinc-800 text-sm mt-4">
+  <button
+    onClick={() => setActiveTab("board")}
+    className={`pb-2.5 font-medium transition-colors border-b-2 ${
+      activeTab === "board"
+        ? "border-blue-500 text-white"
+        : "border-transparent text-zinc-400 hover:text-zinc-200"
+    }`}
+  >
+    Active Board
+  </button>
+  <button
+    onClick={() => {
+      setActiveTab("oss");
+      if (ossIssues.length === 0) loadOssIssues(ossLanguage);
+    }}
+    className={`pb-2.5 font-medium transition-colors border-b-2 flex items-center gap-2 ${
+      activeTab === "oss"
+        ? "border-blue-500 text-white"
+        : "border-transparent text-zinc-400 hover:text-zinc-200"
+    }`}
+  >
+    <span>Open Source Hub</span>
+    <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded-full border border-blue-500/20">
+      Live
+    </span>
+  </button>
+</div>
+
+       {activeTab === "board" ? (
+  <>
+    <div className="flex flex-wrap items-center justify-between gap-4 py-6">
+      <div className="flex items-center gap-3">
+        {/* Search Input */}
+        <input
+          type="text"
+          placeholder="Search issues or tags..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-64 rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-700 focus:outline-none"
+        />
+
+        {/* All Issues Toggle */}
+        <Button
+          type="button"
+          variant={!filteredMyIssues ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilteredMyIssues(false)}
+          className={`h-8 border-zinc-800 text-xs ${
+            !filteredMyIssues ? "bg-zinc-100 text-zinc-950 hover:bg-zinc-200" : "text-zinc-400"
+          }`}
+        >
+          All
+        </Button>
+
+        {/* My Issues Toggle */}
+        <Button
+          type="button"
+          variant={filteredMyIssues ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilteredMyIssues(true)}
+          className={`h-8 border-zinc-800 text-xs ${
+            filteredMyIssues ? "bg-zinc-100 text-zinc-950 hover:bg-zinc-200" : "text-zinc-400"
+          }`}
+        >
+          My Issues
+        </Button>
+      </div>
+
+      <span className="text-xs text-zinc-500 font-mono">
+        Showing {displayedIssues.length} {displayedIssues.length === 1 ? "task" : "tasks"}
+      </span>
+    </div>
+
+    {/* ================= 3-COLUMN KANBAN GRID ================= */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {COLUMNS.map((column) => {
+        const columnIssues = displayedIssues.filter((i) => i.status === column.id);
+
+        return (
+          <div
+            key={column.id}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => handleDrop(e, column.id)}
+            className="flex min-h-120 flex-col rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4"
+          >
+            {/* Column Header */}
+            <div className="mb-4 flex items-center justify-between border-b border-zinc-800 pb-3">
+              <span className="text-sm font-medium text-zinc-300">{column.label}</span>
+              <span className="rounded-full bg-zinc-800 px-2 py-0.5 font-mono text-xs text-zinc-400">
+                {columnIssues.length}
+              </span>
+            </div>
+
+            {/* Column Cards */}
+            <div className="flex-1 space-y-3">
+              {columnIssues.map((issue) => (
+                <div
+                  key={issue.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, issue.id)}
+                  onClick={() => setSelectedIssues(issue)} 
+                  className="cursor-pointer rounded-lg border border-zinc-800 bg-zinc-900 p-3 shadow-sm transition hover:border-zinc-700 active:cursor-grabbing"
+                >
+                  <div className="mb-2 flex items-center justify-between text-xs">
+                    <span className="font-mono text-zinc-500">#{issue.issueKey}</span>
+                    <span className={`text-[11px] font-medium ${getPriorityColor(issue.priority)}`}>
+                      {issue.priority}
+                    </span>
+                  </div>
+
+                  <p className="mb-3 text-sm font-medium text-zinc-200 leading-snug">
+                    {issue.title}
+                  </p>
+
+                  <div className="flex items-center justify-between border-t border-zinc-800/60 pt-2 text-[10px]">
+                    <span className="rounded bg-zinc-800 px-2 py-0.5 font-mono text-zinc-400">
+                      {issue.tag}
+                    </span>
+                    <span className="text-zinc-500">
+                      {issue.assignee?.name || "Unassigned"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {columnIssues.length === 0 && (
+                <div className="flex h-28 items-center justify-center rounded-lg border border-dashed border-zinc-800/80 text-xs text-zinc-600">
+                  No issues
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        );
+      })}
+    </div>
+  </>
+) : (
+  /* ================= OPEN SOURCE EXPLORER VIEW ================= */
+  <div className="space-y-6 py-6">
+    {/* Filter bar: Language select */}
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex items-center gap-2">
+        <label htmlFor="oss-language" className="text-xs font-medium text-zinc-400">
+          Filter by Stack:
+        </label>
+        <select
+          id="oss-language"
+          value={ossLanguage}
+          onChange={(e) => {
+            const selected = e.target.value;
+            setOssLanguage(selected);
+            loadOssIssues(selected);
+          }}
+          className="rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-200 focus:border-zinc-700 focus:outline-none"
+        >
+          <option value="typescript">TypeScript</option>
+          <option value="javascript">JavaScript</option>
+          <option value="python">Python</option>
+          <option value="rust">Rust</option>
+          <option value="go">Go</option>
+        </select>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {COLUMNS.map((column) => {
-            const columnIssues = displayedIssues.filter((i: any) => i.status === column.id);
+      <span className="text-xs text-zinc-500">
+        Filtered by: <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">good first issue</code>
+      </span>
+    </div>
 
-            return (
-              <div
-                key={column.id}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => handleDrop(e, column.id)}
-                className="bg-zinc-900/50 border border-zinc-800/80 rounded-xl p-4 min-h-112.5 flex flex-col"
-              >
-                <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
-                  <span className="font-medium text-sm text-zinc-300">{column.label}</span>
-                  <span className="text-xs font-mono bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full">
-                    {columnIssues.length}
-                  </span>
-                </div>
-                <div className="space-y-3 flex-1">
-                  {columnIssues.map((issue: any) => (
-                    <div
-                      key={issue.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, issue.id)}
-                      onClick={() => setSelectedIssues(issue)}
-                      className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 hover:border-zinc-700 transition cursor-pointer"
-                    >
-                      <div className="flex justify-between items-center text-xs mb-2">
-                        <span className="font-mono text-zinc-500">#{issue.issueKey}</span>
-                        <span className={`font-medium text-[11px] ${getPriorityColor(issue.priority)}`}>
-                          {issue.priority}
-                        </span>
-                      </div>
-                      <p className="text-sm font-medium text-zinc-200 mb-3">{issue.title}</p>
-                      <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
-                        <span className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded font-mono">
-                          {issue.tag}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                  {columnIssues.length === 0 && (
-                    <div className="h-28 flex items-center justify-center border border-dashed border-zinc-800 rounded-lg text-xs text-zinc-600">
-                      No issues
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+    {/* Issues Grid / State Display */}
+    {ossLoading ? (
+      <div className="animate-pulse py-24 text-center text-xs text-zinc-500">
+        Searching GitHub for beginner-friendly issues...
+      </div>
+    ) : ossIssues.length === 0 ? (
+      <div className="py-24 text-center text-xs text-zinc-500">
+        No open issues found for {ossLanguage}. Try selecting another language!
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {ossIssues.map((issue) => (
+          <OpenSourceCard
+            key={issue.id}
+            issue={issue}
+            onImport={handleImportToBoard}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+)}
 
         <Sheet open={Boolean(selectedIssues)} onOpenChange={(open) => !open && setSelectedIssues(null)}>
           <SheetContent className="bg-zinc-950 border-l border-zinc-800 text-zinc-100 sm:max-w-md flex flex-col justify-between">
