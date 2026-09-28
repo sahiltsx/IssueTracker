@@ -8,5 +8,5 @@ export type Issue = {
   priority: string;
   status: string;
   tag: string;
-  assignee?: { name: string } | null;
+  assignee?: { email: string } | null;
 };

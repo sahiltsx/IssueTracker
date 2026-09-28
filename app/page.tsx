@@ -1,7 +1,11 @@
-export default function landindPage(){
-  return(
-    <div>
-      <h1>Hello buddy !</h1>
-    </div>
-  )
+// src/app/page.tsx
+import { getIssues } from "@/app/actions/issues";
+import DashboardClient from "./dashboard/page";
+export const dynamic = "force-dynamic";
+
+export default async function Page() {
+  // Fetch real records from PostgreSQL via Prisma
+  const issues = await getIssues();
+
+  return <DashboardClient initialIssues={issues} />;
 }

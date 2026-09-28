@@ -10,7 +10,7 @@ export async function getIssues() {
         const issues=await prisma.issue.findMany({
             include:{
                 assignee:{
-                    select:{id:true,email:true,name:true}
+                    select:{id:true,email:true}
                 }
             },
             orderBy:{createdAt:"desc"},
@@ -44,7 +44,7 @@ export async function createIssues(data:{
             },
             include:{
                 assignee:{
-                    select:{id:true,email:true,name:true}
+                    select:{id:true,email:true}
                 }
             }
         });

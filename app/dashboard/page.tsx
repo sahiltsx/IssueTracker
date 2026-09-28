@@ -12,22 +12,14 @@ import { fetchOpenSourceIssues,GitHubIssue } from "../actions/github";
 import { OpenSourceCard } from "@/components/OpenSourceCard";
 import { Issue } from "../types/issue";
 
-const DUMMY_ISSUES: Issue[] = [
-  { id: "1", issueKey: "ISS-101", title: "Implement user authentication with JWT & refresh tokens", priority: "High", status: "TODO", tag: "backend", assignee: null },
-  { id: "2", issueKey: "ISS-102", title: "Setup PostgreSQL schema and migrate initial tables", priority: "Medium", status: "TODO", tag: "database", assignee: null },
-  { id: "3", issueKey: "ISS-103", title: "Fix login page layout shifts on mobile viewport", priority: "Urgent", status: "IN_PROGRESS", tag: "bug", assignee: { name: "Sahil Sharma" } },
-  { id: "4", issueKey: "ISS-104", title: "Integrate shadcn dialog for ticket creation modal", priority: "Medium", status: "IN_PROGRESS", tag: "frontend", assignee: null },
-  { id: "5", issueKey: "ISS-105", title: "Configure Tailwind CSS dark theme tokens", priority: "Low", status: "DONE", tag: "ui", assignee: null },
-];
-
 const COLUMNS = [
   { id: "TODO", label: "To Do" },
   { id: "IN_PROGRESS", label: "In Progress" },
   { id: "DONE", label: "Done" },
 ];
 
-export default function Dashboard() {
-  const [issues, setIssues] = useState<Issue[]>(DUMMY_ISSUES);
+export default function DashboardClient({initialIssues}:{initialIssues:Issue[]}) {
+  const [issues, setIssues] = useState<Issue[]>(initialIssues);
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -344,7 +336,7 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
                       {issue.tag}
                     </span>
                     <span className="text-zinc-500">
-                      {issue.assignee?.name || "Unassigned"}
+                      {issue.assignee?.email || "Unassigned"}
                     </span>
                   </div>
                 </div>
