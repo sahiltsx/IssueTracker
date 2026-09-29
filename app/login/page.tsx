@@ -113,7 +113,10 @@ export default function Login() {
                         <Separator className="flex-1" />
                     </div>
 
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={()=>window.location.href="/api/v1/Github"}>
                         Continue with Github
                     </Button>
 
