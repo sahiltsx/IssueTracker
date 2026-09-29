@@ -5,6 +5,7 @@ export type Issue = {
   id: string;
   issueKey: string;
   title: string;
+  discription:string | null;
   priority: string;
   status: string;
   tag: string;

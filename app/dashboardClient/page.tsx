@@ -18,7 +18,7 @@ const COLUMNS = [
 ];
 
 export default function DashboardClient({initialIssues}:{initialIssues:Issue[]}) {
-  const [issues, setIssues] = useState<Issue[]>(initialIssues);
+  const [issues, setIssues] = useState<Issue[]>(initialIssues || []);
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -58,7 +58,7 @@ export default function DashboardClient({initialIssues}:{initialIssues:Issue[]})
     });
 
     if (res.success && res.data) {
-      setIssues((prev) => [res.data, ...prev]);
+      setIssues((prev) => [res.data as any, ...prev]);
       toast.success("Issue created successfully");
       setNewTitle("");
       setIsOpen(false);
@@ -126,7 +126,7 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
   });
 
   if (res.success && res.data) {
-    setIssues((prev) => [res.data, ...prev]);
+    setIssues((prev) => [res.data as any, ...prev]);
     toast.success(`Tracked issue #${ossItem.number} on your board!`);
     setActiveTab("board"); // Switch back to view the added card
   } else {
@@ -407,88 +407,123 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
   </div>
 )}
 
-        <Sheet open={Boolean(selectedIssues)} onOpenChange={(open) => !open && setSelectedIssues(null)}>
-          <SheetContent className="bg-zinc-950 border-l border-zinc-800 text-zinc-100 sm:max-w-md flex flex-col justify-between">
-            {selectedIssues && (
-              <div className="space-y-6 pt-4">
-                <SheetHeader className="text-left space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-zinc-500 font-semibold">
-                      #{selectedIssues.issueKey}
-                    </span>
-                    <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded border border-zinc-800 bg-zinc-900 ${getPriorityColor(
-                        selectedIssues.priority
-                      )}`}
-                    >
-                      {selectedIssues.priority}
-                    </span>
-                  </div>
-                  <SheetTitle className="text-lg font-semibold text-zinc-100">
-                    {selectedIssues.title}
-                  </SheetTitle>
-                </SheetHeader>
+      <Sheet open={Boolean(selectedIssues)} onOpenChange={(open) => !open && setSelectedIssues(null)}>
+  <SheetContent className="bg-zinc-950 border-l border-zinc-800 text-zinc-100 sm:max-w-md flex flex-col justify-between overflow-y-auto">
+    {selectedIssues && (
+      <div className="space-y-6 pt-4 pb-8">
+        
+        {/* Header Section: Key & Priority */}
+        <SheetHeader className="text-left space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs text-zinc-500 font-semibold">
+                #{selectedIssues.issueKey}
+              </span>
+              <span
+                className={`text-xs font-medium px-2 py-0.5 rounded border border-zinc-800 bg-zinc-900 ${getPriorityColor(
+                  selectedIssues.priority
+                )}`}
+              >
+                {selectedIssues.priority}
+              </span>
+            </div>
+          </div>
 
-                <div className="bg-zinc-900 border border-zinc-800 p-3 rounded-lg flex items-center justify-between">
-                  <span className="font-mono text-xs text-zinc-400 truncate max-w-60">
-                    git checkout -b {selectedIssues.issueKey.toLowerCase()}-
-                    {selectedIssues.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 20)}
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-7 text-xs border-zinc-700 text-zinc-300"
-                    onClick={() => {
-                      navigator.clipboard
-                        .writeText(
-                          `git checkout -b ${selectedIssues.issueKey.toLowerCase()}-${selectedIssues.title
-                            .toLowerCase()
-                            .replace(/[^a-z0-9]+/g, "-")
-                            .slice(0, 20)}`
-                        )
-                        .then(() => {
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 1500);
-                        });
-                    }}
-                  >
-                    {copied ? "copied" : "Copy"}
-                  </Button>
-                </div>
+          <SheetTitle className="text-lg font-semibold text-zinc-100 leading-snug">
+            {selectedIssues.title}
+          </SheetTitle>
+        </SheetHeader>
 
-                <div className="space-y-2">
-                  <label className="text-xs text-zinc-400 font-medium">Status</label>
-                  <select
-                    value={selectedIssues.status}
-                    onChange={(e) => {
-                      const updatedStatus = e.target.value;
-                      setIssues((prev) =>
-                        prev.map((i) => (i.id === selectedIssues.id ? { ...i, status: updatedStatus } : i))
-                      );
-                      setSelectedIssues({ ...selectedIssues, status: updatedStatus });
-                    }}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-200 focus:outline-none"
-                  >
-                    <option value="TODO">To Do</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="DONE">Done</option>
-                  </select>
-                </div>
+        <div className="space-y-2">
+          <label className="text-xs text-zinc-400 font-medium">Description / Notes</label>
+          <div className="bg-zinc-900/60 border border-zinc-800/80 p-3 rounded-lg text-xs text-zinc-300 leading-relaxed min-h-20">
+            {selectedIssues.discription || "No description provided for this task yet."}
+          </div>
+        </div>
 
-                <div className="pt-6 border-t border-zinc-800">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full text-xs"
-                    onClick={() => handleDeleteIssues(selectedIssues.id)}
-                  >
-                    Delete Issue
-                  </Button>
-                </div>
-              </div>
-            )}
-          </SheetContent>
-        </Sheet>
+        {/* Assignee & Origin Meta Info */}
+        <div className="grid grid-cols-2 gap-3 bg-zinc-900/40 border border-zinc-800/60 p-3 rounded-lg text-xs">
+          <div>
+            <span className="text-zinc-500 block mb-1">Assignee</span>
+            <span className="text-zinc-200 font-medium">
+              {selectedIssues.assignee?.email || "Unassigned"}
+            </span>
+          </div>
+          <div>
+            <span className="text-zinc-500 block mb-1">Source / Tracker</span>
+            <span className="text-zinc-200 font-medium truncate block">
+              {selectedIssues.tag === "open-source" ? "GitHub OSS Hub" : "Internal Board"}
+            </span>
+          </div>
+        </div>
+
+        {/* Quick Git Branch Helper */}
+        <div className="space-y-2">
+          <label className="text-xs text-zinc-400 font-medium">Git Branch Command</label>
+          <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-lg flex items-center justify-between gap-2">
+            <span className="font-mono text-[11px] text-zinc-400 truncate">
+              git checkout -b {selectedIssues.issueKey.toLowerCase()}-
+              {selectedIssues.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 15)}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs border-zinc-700 text-zinc-300 shrink-0"
+              onClick={() => {
+                navigator.clipboard
+                  .writeText(
+                    `git checkout -b ${selectedIssues.issueKey.toLowerCase()}-${selectedIssues.title
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]+/g, "-")
+                      .slice(0, 15)}`
+                  )
+                  .then(() => {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1500);
+                  });
+              }}
+            >
+              {copied ? "Copied!" : "Copy"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Status Dropdown */}
+        <div className="space-y-2">
+          <label className="text-xs text-zinc-400 font-medium">Update Status</label>
+          <select
+            value={selectedIssues.status}
+            onChange={(e) => {
+              const updatedStatus = e.target.value;
+              setIssues((prev) =>
+                prev.map((i) => (i.id === selectedIssues.id ? { ...i, status: updatedStatus } : i))
+              );
+              setSelectedIssues({ ...selectedIssues, status: updatedStatus });
+            }}
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700"
+          >
+            <option value="TODO">To Do</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="DONE">Done</option>
+          </select>
+        </div>
+
+        {/* Delete Action */}
+        <div className="pt-4 border-t border-zinc-900">
+          <Button
+            variant="destructive"
+            size="sm"
+            className="w-full text-xs h-9"
+            onClick={() => handleDeleteIssues(selectedIssues.id)}
+          >
+            Delete Issue
+          </Button>
+        </div>
+
+      </div>
+    )}
+  </SheetContent>
+</Sheet>
       </div>
     </div>
   );
