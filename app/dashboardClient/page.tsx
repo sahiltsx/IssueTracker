@@ -10,6 +10,7 @@ import { useSession } from "../hooks/session";
 import { fetchOpenSourceIssues,GitHubIssue } from "../actions/github";
 import { OpenSourceCard } from "@/components/OpenSourceCard";
 import { Issue } from "../types/issue";
+import Link from "next/link";
 
 const COLUMNS = [
   { id: "TODO", label: "To Do" },
@@ -137,7 +138,7 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 px-6 py-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <header className="flex items-center justify-between pb-5 border-b border-zinc-800">
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-semibold tracking-tight">IssueFlow</h2>
@@ -210,8 +211,45 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
               </DialogContent>
             </Dialog>
 
-            <span className="text-sm font-medium text-zinc-400">User Profile</span>
-          </div>
+{sessionUser ? (
+    <div className="flex items-center gap-2.5 bg-zinc-900 border border-zinc-800 rounded-full py-1.5 px-3">
+      {(sessionUser as any).image ? (
+        <img 
+          src={(sessionUser as any).image} 
+          alt="Profile" 
+          className="w-6 h-6 rounded-full object-cover border border-zinc-700" 
+        />
+      ) : (
+        <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">
+          {sessionUser.email?.[0].toUpperCase() || "U"}
+        </div>
+      )}
+      <span className="text-xs font-medium text-zinc-300 max-w-30 truncate">
+        {sessionUser.email}
+      </span>
+      
+      {/* Logout button */}
+      <button 
+        onClick={async () => {
+          // Clear auth cookie by hitting a logout route or clearing state
+          document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          window.location.href = "/";
+        }}
+        className="text-[10px] text-zinc-500 hover:text-rose-400 ml-1 transition-colors"
+        title="Logout"
+      >
+        Logout
+      </button>
+    </div>
+  ) : (
+    <div className="flex items-center gap-2">
+      <Link href="/login">
+        <Button variant="outline" size="sm" className="text-xs h-8 border-zinc-800 bg-zinc-900">
+          Login
+        </Button>
+      </Link>
+    </div>
+  )}          </div>
         </header>
 
         {/* View Tabs */}
