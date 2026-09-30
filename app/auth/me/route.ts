@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import prisma from "@/lib/db";
+import { verifyToken } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,8 +10,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ user: null }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
-    
+    const decoded = verifyToken(token);
+
+    if (!decoded || typeof decoded !== "object" || !("userId" in decoded)) {
+      return NextResponse.json({ user: null }, { status: 401 });
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: { id: true, email: true, image: true }
@@ -22,7 +26,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ user }, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ user: null }, { status: 401 });
   }
 }

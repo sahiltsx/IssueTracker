@@ -7,6 +7,7 @@ type SessionUser = {
   id: string;
   email: string;
   name?: string;
+  image?:string | null;
   githubAccessToken?: string;
 } | null;
 
@@ -20,7 +21,7 @@ export function useSession() {
     async function fetchSession() {
       try {
         const res = await fetch("/api/auth/me", {
-          credentials: "include", // sends the session cookie
+          credentials: "include", 
         });
 
         if (!res.ok) {

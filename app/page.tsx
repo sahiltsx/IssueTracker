@@ -13,16 +13,6 @@ export default function LandingPage() {
           backgroundSize: '28px 28px'
         }}
       />
-
-      <div className="z-10 w-full max-w-5xl flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-600/20">
-            <Kanban className="w-4 h-4" />
-          </div>
-          <span className="font-bold tracking-tight text-sm font-mono">IssueFlow</span>
-        </div>
-      </div>
-
       <main className="z-10 flex-1 flex flex-col items-center justify-center text-center max-w-xl my-auto py-12">
         
         <div className="absolute w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
