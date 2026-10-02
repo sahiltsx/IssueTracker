@@ -139,6 +139,24 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
   }
 };
 
+ const handleProfile=async()=>{
+try {
+      const res = await fetch("/api/auth/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: profileName, bio: profileBio }),
+      });
+
+      if (res.ok) {
+        setIsEditingProfile(false);
+        window.location.reload(); 
+      } else {
+        alert("Failed to update profile");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+ }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 px-6 py-6">
@@ -281,7 +299,7 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
 ) : (
   <div className="space-y-3 text-xs">
     <div className="space-y-1">
-      <label className="text-zinc-400">Display Name</label>
+      <label className="text-zinc-400">Name</label>
       <input
         type="text"
         value={profileName}
@@ -303,9 +321,7 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
 
     <div className="flex gap-2 pt-1">
       <button
-        onClick={() => {
-          setIsEditingProfile(false);
-        }}
+       onClick={handleProfile}
         className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-1.5 rounded text-xs transition-colors"
       >
         Save

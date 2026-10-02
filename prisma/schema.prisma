@@ -12,6 +12,7 @@ model User{
   id                String    @id @default(cuid())
   email             String    
   password          String?
+  bio               String?
   image             String?
   emailVerified     String?
   githubId          String? @unique
