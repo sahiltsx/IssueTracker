@@ -254,63 +254,71 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
           </div>
         </div>
 
-        {!isEditingProfile ? (
-          <div className="space-y-3 text-xs">
-            <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800 space-y-1">
-              <span className="text-zinc-500 block text-[10px] uppercase font-mono">Bio / Role</span>
-              <p className="text-zinc-300">
-                {(sessionUser as any).bio || "No bio added yet. Click edit to create your profile details!"}
-              </p>
-            </div>
+{!isEditingProfile ? (
+  <div className="space-y-3 text-xs">
+    <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800 space-y-1">
+      <span className="text-zinc-500 block text-[10px] uppercase font-mono">Bio / Role</span>
+      <p className="text-zinc-300">
+        {(sessionUser as any).bio || "No profile details created yet. Click create to set up your profile!"}
+      </p>
+    </div>
 
-            <button
-              onClick={() => setIsEditingProfile(true)}
-              className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium py-1.5 rounded-lg text-xs transition-colors"
-            >
-              Create / Edit Profile
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3 text-xs">
-            <div className="space-y-1">
-              <label className="text-zinc-400">Display Name</label>
-              <input
-                type="text"
-                value={profileName}
-                onChange={(e) => setProfileName(e.target.value)}
-                placeholder="Enter your name"
-                className="w-full bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-zinc-200 focus:outline-none focus:border-zinc-700"
-              />
-            </div>
+    <button
+      onClick={() => {
+        setProfileName(sessionUser?.name || "");
+        setProfileBio((sessionUser as any).bio || "");
+        setIsEditingProfile(true);
+      }}
+      className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium py-1.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5"
+    >
+      {!sessionUser?.name && !(sessionUser as any)?.bio ? (
+        <> Create Profile</>
+      ) : (
+        <> Edit Profile</>
+      )}
+    </button>
+  </div>
+) : (
+  <div className="space-y-3 text-xs">
+    <div className="space-y-1">
+      <label className="text-zinc-400">Display Name</label>
+      <input
+        type="text"
+        value={profileName}
+        onChange={(e) => setProfileName(e.target.value)}
+        placeholder="Enter your name"
+        className="w-full bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-zinc-200 focus:outline-none focus:border-zinc-700"
+      />
+    </div>
 
-            <div className="space-y-1">
-              <label className="text-zinc-400">Bio / About You</label>
-              <textarea
-                value={profileBio}
-                onChange={(e) => setProfileBio(e.target.value)}
-                placeholder="Full-stack developer..."
-                className="w-full bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-zinc-200 focus:outline-none focus:border-zinc-700 h-16 resize-none"
-              />
-            </div>
+    <div className="space-y-1">
+      <label className="text-zinc-400">Bio / About You</label>
+      <textarea
+        value={profileBio}
+        onChange={(e) => setProfileBio(e.target.value)}
+        placeholder="Full-stack developer..."
+        className="w-full bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 text-zinc-200 focus:outline-none focus:border-zinc-700 h-16 resize-none"
+      />
+    </div>
 
-            <div className="flex gap-2 pt-1">
-              <button
-                onClick={() => {
-                  setIsEditingProfile(false);
-                }}
-                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-1.5 rounded text-xs transition-colors"
-              >
-                Save
-              </button>
-              <button
-                onClick={() => setIsEditingProfile(false)}
-                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium py-1.5 rounded text-xs transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
+    <div className="flex gap-2 pt-1">
+      <button
+        onClick={() => {
+          setIsEditingProfile(false);
+        }}
+        className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-1.5 rounded text-xs transition-colors"
+      >
+        Save
+      </button>
+      <button
+        onClick={() => setIsEditingProfile(false)}
+        className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium py-1.5 rounded text-xs transition-colors"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
 
         <div className="pt-2 border-t border-zinc-800">
           <button
