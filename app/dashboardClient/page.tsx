@@ -20,6 +20,7 @@ const COLUMNS = [
 
 export default function DashboardClient({initialIssues}:{initialIssues:Issue[]}) {
   const [issues, setIssues] = useState<Issue[]>(initialIssues || []);
+  const [isProfileOpen,setProfileOpen] =useState(false);
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -212,47 +213,74 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
             </Dialog>
 
 {sessionUser ? (
-    <div className="flex items-center gap-2.5 bg-zinc-900 border border-zinc-800 rounded-full py-1.5 px-3">
-      {(sessionUser as any).image ? (
+  <div className="relative">
+    {/* Profile Avatar Trigger Button */}
+    <button
+      onClick={() => setProfileOpen(!isProfileOpen)}
+      className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full p-1 hover:border-zinc-700 transition"
+      title="View Profile"
+    >
+      {sessionUser.image ? (
         <img 
-          src={(sessionUser as any).image} 
+          src={sessionUser.image} 
           alt="Profile" 
-          className="w-6 h-6 rounded-full object-cover border border-zinc-700" 
+          className="w-8 h-8 rounded-full object-cover border border-zinc-700" 
         />
       ) : (
-        <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">
+        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white">
           {sessionUser.email?.[0].toUpperCase() || "U"}
         </div>
       )}
-      <span className="text-xs font-medium text-zinc-300 max-w-30 truncate">
-        {sessionUser.email}
-      </span>
-      
-      {/* Logout button */}
-      <button 
-        onClick={async () => {
-          // Clear auth cookie by hitting a logout route or clearing state
-          document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-          window.location.href = "/";
-        }}
-        className="text-[10px] text-zinc-500 hover:text-rose-400 ml-1 transition-colors"
-        title="Logout"
-      >
-        Logout
-      </button>
+    </button>
+
+    
+    {isProfileOpen && (
+      <div className="absolute right-0 mt-2 w-64 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl p-4 z-50 text-zinc-100 space-y-4">
+        
+        <div className="flex items-center gap-3 border-b border-zinc-800 pb-3">
+          {sessionUser.image ? (
+            <img src={sessionUser.image} alt="Profile" className="w-10 h-10 rounded-full object-cover" />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white">
+              {sessionUser.email?.[0].toUpperCase()}
+            </div>
+          )}
+          <div className="overflow-hidden">
+            <p className="text-xs font-semibold text-zinc-200 truncate">{sessionUser.name || "Developer"}</p>
+            <p className="text-[11px] text-zinc-400 truncate">{sessionUser.email}</p>
+          </div>
+        </div>
+        <div className="space-y-2 text-xs">
+          <span className="text-zinc-500 block font-medium">Account Status</span>
+          <div className="bg-zinc-950 p-2.5 rounded-lg border border-zinc-800 text-zinc-300">
+            Connected via GitHub OAuth 🚀
+          </div>
+        </div>
+
+        <div className="pt-2 border-t border-zinc-800 flex justify-between items-center">
+          <button
+            onClick={() => {
+              document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+              window.location.href = "/";
+            }}
+            className="w-full text-center bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-medium py-1.5 rounded-lg text-xs transition-colors"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+) : (
+  <Link href="/login">
+    <Button variant="outline" size="sm" className="text-xs h-8 border-zinc-800 bg-zinc-900">
+      Login
+    </Button>
+  </Link>
+)}        
     </div>
-  ) : (
-    <div className="flex items-center gap-2">
-      <Link href="/login">
-        <Button variant="outline" size="sm" className="text-xs h-8 border-zinc-800 bg-zinc-900">
-          Login
-        </Button>
-      </Link>
-    </div>
-  )}          </div>
         </header>
 
-        {/* View Tabs */}
 <div className="flex gap-6 border-b border-zinc-800 text-sm mt-4">
   <button
     onClick={() => setActiveTab("board")}
@@ -286,7 +314,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
   <>
     <div className="flex flex-wrap items-center justify-between gap-4 py-6">
       <div className="flex items-center gap-3">
-        {/* Search Input */}
         <input
           type="text"
           placeholder="Search issues or tags..."
@@ -295,7 +322,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
           className="w-64 rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-700 focus:outline-none"
         />
 
-        {/* All Issues Toggle */}
         <Button
           type="button"
           variant={!filteredMyIssues ? "default" : "outline"}
@@ -308,7 +334,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
           All
         </Button>
 
-        {/* My Issues Toggle */}
         <Button
           type="button"
           variant={filteredMyIssues ? "default" : "outline"}
@@ -327,7 +352,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
       </span>
     </div>
 
-    {/* ================= 3-COLUMN KANBAN GRID ================= */}
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {COLUMNS.map((column) => {
         const columnIssues = displayedIssues.filter((i) => i.status === column.id);
@@ -339,7 +363,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
             onDrop={(e) => handleDrop(e, column.id)}
             className="flex min-h-120 flex-col rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4"
           >
-            {/* Column Header */}
             <div className="mb-4 flex items-center justify-between border-b border-zinc-800 pb-3">
               <span className="text-sm font-medium text-zinc-300">{column.label}</span>
               <span className="rounded-full bg-zinc-800 px-2 py-0.5 font-mono text-xs text-zinc-400">
@@ -347,7 +370,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
               </span>
             </div>
 
-            {/* Column Cards */}
             <div className="flex-1 space-y-3">
               {columnIssues.map((issue) => (
                 <div
@@ -391,9 +413,7 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
     </div>
   </>
 ) : (
-  /* ================= OPEN SOURCE EXPLORER VIEW ================= */
   <div className="space-y-6 py-6">
-    {/* Filter bar: Language select */}
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-2">
         <label htmlFor="oss-language" className="text-xs font-medium text-zinc-400">
@@ -422,7 +442,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
       </span>
     </div>
 
-    {/* Issues Grid / State Display */}
     {ossLoading ? (
       <div className="animate-pulse py-24 text-center text-xs text-zinc-500">
         Searching GitHub for beginner-friendly issues...
@@ -450,7 +469,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
     {selectedIssues && (
       <div className="space-y-6 pt-4 pb-8">
         
-        {/* Header Section: Key & Priority */}
         <SheetHeader className="text-left space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -479,7 +497,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
           </div>
         </div>
 
-        {/* Assignee & Origin Meta Info */}
         <div className="grid grid-cols-2 gap-3 bg-zinc-900/40 border border-zinc-800/60 p-3 rounded-lg text-xs">
           <div>
             <span className="text-zinc-500 block mb-1">Assignee</span>
@@ -495,7 +512,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
           </div>
         </div>
 
-        {/* Quick Git Branch Helper */}
         <div className="space-y-2">
           <label className="text-xs text-zinc-400 font-medium">Git Branch Command</label>
           <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-lg flex items-center justify-between gap-2">
@@ -526,7 +542,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
           </div>
         </div>
 
-        {/* Status Dropdown */}
         <div className="space-y-2">
           <label className="text-xs text-zinc-400 font-medium">Update Status</label>
           <select
@@ -546,7 +561,6 @@ const handleImportToBoard = async (ossItem: GitHubIssue) => {
           </select>
         </div>
 
-        {/* Delete Action */}
         <div className="pt-4 border-t border-zinc-900">
           <Button
             variant="destructive"
