@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { verifyToken } from "@/lib/auth";
 
+export const dynamic = "force-dynamic"; 
+
 export async function GET(req: NextRequest) {
   try {
     const token = req.cookies.get("token")?.value;
@@ -17,8 +19,14 @@ export async function GET(req: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: { id: true, email: true, image: true }
+      where: { id: decoded.userId as string },
+      select: {
+        id: true,
+        email: true,
+        name: true,  
+        image: true,
+        bio: true,    
+      },
     });
 
     if (!user) {
