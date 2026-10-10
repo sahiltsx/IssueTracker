@@ -75,13 +75,15 @@ export default function DashboardClient({initialIssues}:{initialIssues:Issue[]})
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "Urgent":
-        return "text-rose-500";
+          return "text-rose-500";
       case "High":
-        return "text-orange-400";
+          return "text-orange-400";
       case "Medium":
-        return "text-emerald-400";
-      default:
-        return "text-neutral-300";
+          return "text-amber-400";
+      case "Low":
+         return "text-sky-400";
+     default:
+         return "text-neutral-300";
     }
   };
 
@@ -160,10 +162,10 @@ try {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 px-6 py-6">
-      <div className="max-w-7xl mx-auto">
+      <div>
         <header className="flex items-center justify-between pb-5 border-b border-zinc-800">
           <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-semibold tracking-tight">IssueFlow</h2>
+            <h2 className="text-3xl font-semibold text-neutral-300 tracking-tight">Issue<span className="text-blue-500">Flow</span></h2>
           </div>
 
           <div className="flex items-center gap-3">
@@ -360,7 +362,7 @@ try {
     </div>
         </header>
 
-<div className="flex gap-6 border-b border-zinc-800 text-sm mt-4">
+<div className="flex gap-6 text-sm mt-4">
   <button
     onClick={() => setActiveTab("board")}
     className={`pb-2.5 font-medium transition-colors border-b-2 ${
@@ -427,8 +429,8 @@ try {
       </div>
 
       <span className="text-xs text-zinc-500 font-mono">
-        Showing {displayedIssues.length} {displayedIssues.length === 1 ? "task" : "tasks"}
-      </span>
+          Showing {displayedIssues.length} {displayedIssues.length === 1 ? "issue" : "issues"}
+       </span>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -459,11 +461,11 @@ try {
                   className="cursor-pointer rounded-lg border border-zinc-800 bg-zinc-900 p-3 shadow-sm transition hover:border-zinc-700 active:cursor-grabbing"
                 >
                   <div className="mb-2 flex items-center justify-between text-xs">
-                    <span className="font-mono text-zinc-500">#{issue.issueKey}</span>
+                    <span className="font-mono text-zinc-400">#{issue.issueKey}</span>           
                     <span className={`text-[11px] font-medium ${getPriorityColor(issue.priority)}`}>
                       {issue.priority}
-                    </span>
-                  </div>
+                  </span>
+              </div>
 
                   <p className="mb-3 text-sm font-medium text-zinc-200 leading-snug">
                     {issue.title}
@@ -474,7 +476,7 @@ try {
                       {issue.tag}
                     </span>
                     <span className="text-zinc-500">
-                      {issue.assignee?.email || "Unassigned"}
+                      {issue.assignee?.name || issue.assignee?.email?.split("@")[0] || "Unassigned"}
                     </span>
                   </div>
                 </div>
