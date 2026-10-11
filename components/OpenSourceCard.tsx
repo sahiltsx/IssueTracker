@@ -1,12 +1,13 @@
-// src/components/OpenSourceCard.tsx
 import { Button } from "@/components/ui/button";
 
 export function OpenSourceCard({
   issue,
   onImport,
+  isImported = false,
 }: {
   issue: any;
   onImport: (issue: any) => void;
+  isImported?: boolean;
 }) {
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between hover:border-zinc-700 transition">
@@ -49,13 +50,19 @@ export function OpenSourceCard({
           </Button>
         </a>
 
-        <Button
-          size="sm"
-          onClick={() => onImport(issue)}
-          className="bg-blue-600 hover:bg-blue-500 text-white text-xs h-8 px-3"
-        >
-          Track +
-        </Button>
+        {isImported ? (
+          <span className="flex h-8 items-center px-3 text-xs text-emerald-400">
+            Already on your board
+          </span>
+        ) : (
+          <Button
+            size="sm"
+            onClick={() => onImport(issue)}
+            className="bg-blue-600 hover:bg-blue-500 text-white text-xs h-8 px-3"
+          >
+            Track +
+          </Button>
+        )}
       </div>
     </div>
   );

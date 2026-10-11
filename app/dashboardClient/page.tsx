@@ -11,6 +11,7 @@ import { fetchOpenSourceIssues, GitHubIssue } from "../actions/github";
 import { OpenSourceCard } from "@/components/OpenSourceCard";
 import { Issue } from "../types/issue";
 import Link from "next/link";
+import IssueDetail from "@/components/IssueDetail";
 
 const COLUMNS = [
   { id: "TODO", label: "To Do" },
@@ -41,10 +42,10 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
   const [newPriority, setNewPriority] = useState("Medium");
   const [newTag, setNewTag] = useState("feature");
   const [selectedIssues, setSelectedIssues] = useState<Issue | null>(null);
-  const [copied, setCopied] = useState(false);
   const [filteredMyIssues, setFilteredMyIssues] = useState(false);
   const [activeTab, setActiveTab] = useState<"board" | "oss">("board");
   const [ossIssues, setOssIssues] = useState<GitHubIssue[]>([]);
@@ -69,19 +70,32 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
 
     const res = await createIssues({
       title: newTitle,
+      description: newDescription,
       priority: newPriority as any,
       tag: newTag,
       assigneeId: sessionUser?.id,
-    });
+    } as any);
 
     if (res.success && res.data) {
-      setIssues((prev) => [res.data as any, ...prev]);
+      const created = res.data as any;
+      setIssues((prev) => [created, ...prev]);
+      setSelectedIssues(created);
       toast.success("Issue created successfully");
       setNewTitle("");
+      setNewDescription("");
       setIsOpen(false);
     } else {
       toast.error("Failed to create issue");
     }
+  };
+
+  const handleStatusChange = async (status: string) => {
+    if (!selectedIssues) return;
+    setIssues((prev) =>
+      prev.map((i) => (i.id === selectedIssues.id ? { ...i, status } : i))
+    );
+    setSelectedIssues({ ...selectedIssues, status } as Issue);
+    await updateIssue(selectedIssues.id, { status: status as any });
   };
 
   const getPriorityColor = (priority: string) => {
@@ -111,7 +125,7 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
       prev.map((item) => (item.id === id ? { ...item, status: targetStatus } : item))
     );
 
-    await updateIssue(id, targetStatus as any);
+    await updateIssue(id, { status: targetStatus as any });
   };
 
   const handleDeleteIssues = async (id: string) => {
@@ -139,10 +153,11 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
 
     const res = await createIssues({
       title,
+      description: `Imported from GitHub: ${ossItem.html_url}`,
       priority: "Medium",
       tag: "open-source",
       assigneeId: sessionUser?.id,
-    });
+    } as any);
 
     if (res.success && res.data) {
       setIssues((prev) => [res.data as any, ...prev]);
@@ -204,6 +219,16 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
                         value={newTitle}
                         onChange={(e) => setNewTitle(e.target.value)}
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 mt-1 focus:outline-none focus:border-zinc-700"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-medium text-zinc-400">Description</label>
+                      <textarea
+                        placeholder="Describe the issue, steps to reproduce, or expected behavior..."
+                        value={newDescription}
+                        onChange={(e) => setNewDescription(e.target.value)}
+                        className="mt-1 h-28 w-full resize-none rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-700 focus:outline-none"
                       />
                     </div>
 
@@ -313,11 +338,7 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
                           }}
                           className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium py-1.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5"
                         >
-                          {!sessionUser?.name && !(sessionUser as any)?.bio ? (
-                            <>Create Profile</>
-                          ) : (
-                            <>Edit Profile</>
-                          )}
+                          {!sessionUser?.name && !(sessionUser as any)?.bio ? "Create Profile" : "Edit Profile"}
                         </button>
                       </div>
                     ) : (
@@ -572,114 +593,17 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
         )}
 
         <Sheet open={Boolean(selectedIssues)} onOpenChange={(open) => !open && setSelectedIssues(null)}>
-          <SheetContent className="bg-zinc-950 border-l border-zinc-800 text-zinc-100 sm:max-w-md flex flex-col justify-between overflow-y-auto">
+          <SheetContent className="bg-zinc-950 border-l border-zinc-800 text-zinc-100 sm:max-w-lg overflow-y-auto [&>button]:text-zinc-400 [&>button:hover]:text-zinc-100">
+            <SheetHeader className="sr-only">
+              <SheetTitle>{selectedIssues?.title ?? "Issue details"}</SheetTitle>
+            </SheetHeader>
+
             {selectedIssues && (
-              <div className="space-y-6 pt-4 pb-8">
-                <SheetHeader className="text-left space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-zinc-500 font-semibold">
-                        #{selectedIssues.issueKey}
-                      </span>
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded border border-zinc-800 bg-zinc-900 ${getPriorityColor(
-                          selectedIssues.priority
-                        )}`}
-                      >
-                        {selectedIssues.priority}
-                      </span>
-                    </div>
-                  </div>
-
-                  <SheetTitle className="text-lg font-semibold text-zinc-100 leading-snug">
-                    {selectedIssues.title}
-                  </SheetTitle>
-                </SheetHeader>
-
-                <div className="space-y-2">
-                  <label className="text-xs text-zinc-400 font-medium">Description / Notes</label>
-                  <div className="bg-zinc-900/60 border border-zinc-800/80 p-3 rounded-lg text-xs text-zinc-300 leading-relaxed min-h-20">
-                    {selectedIssues.discription || "No description provided for this task yet."}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 bg-zinc-900/40 border border-zinc-800/60 p-3 rounded-lg text-xs">
-                  <div>
-                    <span className="text-zinc-500 block mb-1">Assignee</span>
-                    <span className="text-zinc-200 font-medium">
-                      {(selectedIssues.assignee as any)?.name ||
-                        selectedIssues.assignee?.email?.split("@")[0] ||
-                        "Unassigned"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-zinc-500 block mb-1">Source / Tracker</span>
-                    <span className="text-zinc-200 font-medium truncate block">
-                      {selectedIssues.tag === "open-source" ? "GitHub OSS Hub" : "Internal Board"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs text-zinc-400 font-medium">Git Branch Command</label>
-                  <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-lg flex items-center justify-between gap-2">
-                    <span className="font-mono text-[11px] text-zinc-400 truncate">
-                      git checkout -b {selectedIssues.issueKey.toLowerCase()}-
-                      {selectedIssues.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 15)}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs border-zinc-700 text-zinc-300 shrink-0"
-                      onClick={() => {
-                        navigator.clipboard
-                          .writeText(
-                            `git checkout -b ${selectedIssues.issueKey.toLowerCase()}-${selectedIssues.title
-                              .toLowerCase()
-                              .replace(/[^a-z0-9]+/g, "-")
-                              .slice(0, 15)}`
-                          )
-                          .then(() => {
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 1500);
-                          });
-                      }}
-                    >
-                      {copied ? "Copied!" : "Copy"}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs text-zinc-400 font-medium">Update Status</label>
-                  <select
-                    value={selectedIssues.status}
-                    onChange={(e) => {
-                      const updatedStatus = e.target.value;
-                      setIssues((prev) =>
-                        prev.map((i) => (i.id === selectedIssues.id ? { ...i, status: updatedStatus } : i))
-                      );
-                      setSelectedIssues({ ...selectedIssues, status: updatedStatus });
-                    }}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700"
-                  >
-                    <option value="TODO">To Do</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="DONE">Done</option>
-                  </select>
-                </div>
-
-                <div className="pt-4 border-t border-zinc-900">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full text-xs h-9"
-                    onClick={() => handleDeleteIssues(selectedIssues.id)}
-                  >
-                    Delete Issue
-                  </Button>
-                </div>
-              </div>
+              <IssueDetail
+                issue={selectedIssues}
+                onStatusChange={handleStatusChange}
+                onDelete={handleDeleteIssues}
+              />
             )}
           </SheetContent>
         </Sheet>

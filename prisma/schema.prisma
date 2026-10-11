@@ -56,3 +56,8 @@ model Issue{
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model Counter {
+  name  String @id
+  value Int
+}
