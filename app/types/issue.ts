@@ -5,9 +5,9 @@ export type Issue = {
   id: string;
   issueKey: string;
   title: string;
-  discription:string | null;
+  description:string | null;
   priority: string;
   status: string;
   tag: string;
-  assignee?: { email: string , name:string} | null;
+  assignee?: { email: string , name:string | null} | null;
 };
