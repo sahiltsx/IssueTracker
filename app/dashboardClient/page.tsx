@@ -12,6 +12,7 @@ import { OpenSourceCard } from "@/components/OpenSourceCard";
 import { Issue } from "../types/issue";
 import Link from "next/link";
 import IssueDetail from "@/components/IssueDetail";
+import IssueCard from "@/components/IssueCard";
 
 const COLUMNS = [
   { id: "TODO", label: "To Do" },
@@ -96,21 +97,6 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
     );
     setSelectedIssues({ ...selectedIssues, status } as Issue);
     await updateIssue(selectedIssues.id, { status: status as any });
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "Urgent":
-        return "text-rose-500";
-      case "High":
-        return "text-orange-400";
-      case "Medium":
-        return "text-amber-400";
-      case "Low":
-        return "text-sky-400";
-      default:
-        return "text-neutral-300";
-    }
   };
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
@@ -502,35 +488,12 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
 
                     <div className="flex-1 space-y-3">
                       {columnIssues.map((issue) => (
-                        <div
+                        <IssueCard
                           key={issue.id}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, issue.id)}
+                          issue={issue}
                           onClick={() => setSelectedIssues(issue)}
-                          className="cursor-pointer rounded-lg border border-zinc-800 bg-zinc-900 p-3 shadow-sm transition hover:border-zinc-600 hover:bg-zinc-800/60 active:cursor-grabbing"
-                        >
-                          <div className="mb-2 flex items-center justify-between text-xs">
-                            <span className="font-mono text-zinc-400">#{issue.issueKey}</span>
-                            <span className={`text-[11px] font-medium ${getPriorityColor(issue.priority)}`}>
-                              {issue.priority}
-                            </span>
-                          </div>
-
-                          <p className="mb-3 text-sm font-medium text-zinc-200 leading-snug">
-                            {issue.title}
-                          </p>
-
-                          <div className="flex items-center justify-between border-t border-zinc-800/60 pt-2 text-[10px]">
-                            <span className="rounded bg-zinc-800 px-2 py-0.5 font-mono text-zinc-400">
-                              {issue.tag}
-                            </span>
-                            <span className="text-zinc-500">
-                              {(issue.assignee as any)?.name ||
-                                issue.assignee?.email?.split("@")[0] ||
-                                "Unassigned"}
-                            </span>
-                          </div>
-                        </div>
+                          onDragStart={(e) => handleDragStart(e, issue.id)}
+                        />
                       ))}
 
                       {columnIssues.length === 0 && (

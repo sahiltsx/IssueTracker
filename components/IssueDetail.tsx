@@ -95,7 +95,7 @@ export default function IssueDetail({ issue, onStatusChange, onDelete }: Props) 
           <span className="rounded border border-zinc-700 px-2 py-0.5">Author</span>
         </div>
         <div className="min-h-24 whitespace-pre-wrap bg-zinc-950 p-4 text-sm leading-relaxed text-zinc-300">
-          {issue.discription || (
+          {issue.description || (
             <span className="italic text-zinc-500">No description provided.</span>
           )}
         </div>

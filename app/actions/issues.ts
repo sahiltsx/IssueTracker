@@ -3,7 +3,6 @@ import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { IssueStatus, IssuePriority } from "../types/issue";
 
-// fetch all issues
 export async function getIssues() {
     try {
         const issues = await prisma.issue.findMany({

@@ -1,7 +1,5 @@
-// src/app/page.tsx
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Kanban, ArrowRight } from "lucide-react";
 
 export default function LandingPage() {
   return (
