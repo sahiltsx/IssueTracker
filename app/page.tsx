@@ -12,7 +12,6 @@ export default function LandingPage() {
         }}
       />
       <main className="z-10 flex-1 flex flex-col items-center justify-center text-center max-w-xl my-auto py-12">
-        
         <div className="absolute w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
         <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-zinc-100 mb-4 font-mono">
@@ -41,7 +40,6 @@ export default function LandingPage() {
             </Button>
           </Link>
         </div>
-
       </main>
 
       <footer className="z-10 text-center text-xs text-zinc-600 font-mono">
