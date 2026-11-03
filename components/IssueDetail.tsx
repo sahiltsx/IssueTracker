@@ -144,7 +144,6 @@ export default function IssueDetail({ issue, onStatusChange, onDelete }: Props) 
           ))}
         </div>
       </div>
-
       <div className="space-y-2">
         <p className="text-xs font-medium text-zinc-400">Create a branch</p>
         <div className="flex items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-900 p-2.5">
@@ -159,7 +158,6 @@ export default function IssueDetail({ issue, onStatusChange, onDelete }: Props) 
           </button>
         </div>
       </div>
-
       <div className="border-t border-zinc-900 pt-4">
         <button
           onClick={() => onDelete(issue.id)}
