@@ -52,6 +52,7 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
   const [ossIssues, setOssIssues] = useState<GitHubIssue[]>([]);
   const [ossLanguage, setOssLanguage] = useState("typescript");
   const [ossLoading, setOssLoading] = useState(false);
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
   const filteredIssues = issues.filter(
     (issue) =>
@@ -105,6 +106,7 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
 
   const handleDrop = async (e: React.DragEvent, targetStatus: string) => {
     e.preventDefault();
+    setDragOverColumn(null);
     const id = e.dataTransfer.getData("text/plain");
 
     setIssues((prev) =>
@@ -474,11 +476,19 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
 
                 return (
                   <div
-                    key={column.id}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => handleDrop(e, column.id)}
-                    className="flex min-h-65 flex-col rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4"
-                  >
+                 key={column.id}
+                 onDragOver={(e) => e.preventDefault()}
+                 onDragEnter={() => setDragOverColumn(column.id)}
+                 onDragLeave={(e) => {
+                 if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                      setDragOverColumn(null);
+                     }
+                    }}
+             onDrop={(e) => handleDrop(e, column.id)}
+             className={`flex min-h-65 flex-col rounded-xl border p-4 transition ${
+             dragOverColumn === column.id ? "border-blue-500 bg-blue-500/5" : "border-zinc-800/80 bg-zinc-900/40"
+              }`}
+              >
                     <div className="mb-4 flex items-center justify-between border-b border-zinc-800 pb-3">
                       <span className="text-sm font-medium text-zinc-300">{column.label}</span>
                       <span className="rounded-full bg-zinc-800 px-2 py-0.5 font-mono text-xs text-zinc-400">
