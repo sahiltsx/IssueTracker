@@ -9,6 +9,13 @@ type IssueCardProps = {
   onDragStart: (e: React.DragEvent) => void;
 };
 
+const PRIORITY_STRIP: Record<string, string> = {
+  Urgent: "bg-rose-500",
+  High: "bg-orange-400",
+  Medium: "bg-amber-400",
+  Low: "bg-sky-400",
+};
+
 export default function IssueCard({ issue, onClick, onDragStart }: IssueCardProps) {
   const assigneeName =
     (issue.assignee as any)?.name ||
@@ -20,8 +27,12 @@ export default function IssueCard({ issue, onClick, onDragStart }: IssueCardProp
       draggable
       onDragStart={onDragStart}
       onClick={onClick}
-      className="cursor-pointer rounded-lg border border-zinc-800 bg-zinc-900 p-3 shadow-sm transition hover:border-zinc-600 hover:bg-zinc-800/60 active:cursor-grabbing"
+      className="relative overflow-hidden pl-4 cursor-pointer rounded-lg border border-zinc-800 bg-zinc-900 p-3 shadow-sm transition hover:border-zinc-600 hover:bg-zinc-800/60 active:cursor-grabbing"
     >
+      <span
+        className={`absolute inset-y-0 left-0 w-1 ${PRIORITY_STRIP[issue.priority] ?? "bg-zinc-600"}`}
+      />
+
       <div className="mb-2 flex items-center justify-between text-xs">
         <span className="font-mono text-zinc-400">#{issue.issueKey}</span>
         <span className={`text-[11px] font-medium ${getPriorityColor(issue.priority)}`}>
