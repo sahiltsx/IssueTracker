@@ -79,7 +79,6 @@ export default function Login() {
                             </Button>
                         </form>
                     )}
-
                     {step === "code" && (
                         <form className="space-y-4" onSubmit={handleVerifyCode}>
                             <div className="space-y-2">
@@ -104,7 +103,6 @@ export default function Login() {
                             </Button>
                         </form>
                     )}
-
                     {error && <p className="text-sm text-red-500">{error}</p>}
 
                     <div className="flex items-center gap-3">
@@ -112,7 +110,6 @@ export default function Login() {
                         <span className="text-xs text-muted-foreground">OR</span>
                         <Separator className="flex-1" />
                     </div>
-
                     <Button 
                     variant="outline" 
                     className="w-full"
