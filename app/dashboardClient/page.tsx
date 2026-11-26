@@ -181,10 +181,9 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
         <header className="flex items-center justify-between pb-5 border-b border-zinc-800">
           <div className="flex items-center gap-2">
             <h2 className="text-3xl font-semibold text-neutral-300 tracking-tight">
-              Issue<span className="text-blue-500">Flow</span>
+              Issue<span className="text-blue-500">Tracker</span>
             </h2>
           </div>
-
           <div className="flex items-center gap-3">
             {activeTab === "board" && (
               <Dialog open={isOpen} onOpenChange={setIsOpen}>
