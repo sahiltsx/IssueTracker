@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
             client_id: process.env.GITHUB_CLIENT_ID,
             client_secret: process.env.GITHUB_CLIENT_SECRET,
             code,
-            redirect_uri: "http://localhost:3000/api/v1/Github/callback",
+            redirect_uri: "https://issue-tracker-9h5i.vercel.app/api/v1/Github/callback",
         }, {
             headers: {
                 Accept: "application/json"
@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
             { expiresIn: "7d" }
         );
 
-        const response = NextResponse.redirect("http://localhost:3000/dashboard");
+        const response = NextResponse.redirect("https://issue-tracker-9h5i.vercel.app/dashboard");
 
         response.cookies.set("token", token, {
             httpOnly: true,
