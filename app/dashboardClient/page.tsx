@@ -481,7 +481,7 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
                      }
                     }}
              onDrop={(e) => handleDrop(e, column.id)}
-             className={`min-w-[85%] md:min-w-0 flex min-h-65 flex-col rounded-xl border p-4 transition ${
+             className={`flex min-h-65 flex-col rounded-xl border p-4 transition ${
              dragOverColumn === column.id ? "border-blue-500 bg-blue-500/5" : "border-zinc-800/80 bg-zinc-900/40"
               }`}
               >
