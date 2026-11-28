@@ -429,14 +429,13 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
         {activeTab === "board" ? (
           <>
             <div className="flex flex-wrap items-center justify-between gap-4 py-6">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <input
                   type="text"
                   placeholder="Search issues or tags..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-64 rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-700 focus:outline-none"
-                />
+                  className="w-full sm:w-64 rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-700 focus:outline-none"                />
 
                 <Button
                   type="button"
