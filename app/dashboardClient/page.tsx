@@ -467,10 +467,8 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {COLUMNS.map((column) => {
+             <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">              {COLUMNS.map((column) => {
                 const columnIssues = displayedIssues.filter((i) => i.status === column.id);
-
                 return (
                   <div
                  key={column.id}
@@ -482,7 +480,7 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
                      }
                     }}
              onDrop={(e) => handleDrop(e, column.id)}
-             className={`flex min-h-65 flex-col rounded-xl border p-4 transition ${
+             className={`min-w-[85%] md:min-w-0 flex min-h-65 flex-col rounded-xl border p-4 transition ${
              dragOverColumn === column.id ? "border-blue-500 bg-blue-500/5" : "border-zinc-800/80 bg-zinc-900/40"
               }`}
               >
