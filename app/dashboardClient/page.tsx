@@ -176,8 +176,8 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 px-6 py-6">
-      <div>
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-4 sm:px-6 sm:py-6">
+        <div>
         <header className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 pb-5 border-b border-zinc-800">          <div className="flex items-center gap-2">
             <h2 className="text-3xl font-semibold text-neutral-300 tracking-tight">
               Issue<span className="text-blue-500">Tracker</span>
@@ -467,7 +467,8 @@ export default function DashboardClient({ initialIssues }: { initialIssues: Issu
               </span>
             </div>
 
-             <div className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">              {COLUMNS.map((column) => {
+           <div className="flex flex-col gap-4 md:grid md:grid-cols-3 md:gap-6">
+              {COLUMNS.map((column) => {
                 const columnIssues = displayedIssues.filter((i) => i.status === column.id);
                 return (
                   <div
